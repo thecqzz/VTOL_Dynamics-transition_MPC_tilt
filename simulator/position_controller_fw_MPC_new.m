@@ -276,8 +276,6 @@ classdef position_controller_fw_MPC_new < pid_controller
             obj.tiltIntegral = obj.tiltIntegral + tilt_speed*dt;
             tilt_angle = rad2deg(Init_Tilt + obj.tiltIntegral);
 
-            disp("MPC outtilt")
-            disp(tilt_angle)
             %disp(rpy_des)
             
         end

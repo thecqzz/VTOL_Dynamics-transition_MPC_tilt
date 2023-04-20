@@ -25,7 +25,7 @@ pos = [0; 0; -200];
 
 % vel = [17.3005; 0; 0];
 vel = [27.7425; 0; 0];
-rpy = [0; 0; 0];
+rpy = [0; 2; 0];
 omega = [0; 0; 0];
 sim.Multirotor.SetInitialState(pos, vel, rpy, omega);
 

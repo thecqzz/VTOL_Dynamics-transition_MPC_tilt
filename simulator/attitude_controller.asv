@@ -1,7 +1,7 @@
 classdef attitude_controller < pid_controller
 
     properties
-         RateLimits = deg2rad([30; 30; 30]); % in rad/s
+         RateLimits = deg2rad([20; 20; 20]); % in rad/s
          OutputMax = deg2rad([8; 8; 8]); % in rad/s^2
 
     end
@@ -10,9 +10,9 @@ classdef attitude_controller < pid_controller
 
         function euler_accel = CalculateControlCommand(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, time)%time
 
-            obj.P = 0.5.*eye(3);
-            obj.I = 0.1.*eye(3);
-            obj.D = 0.1*eye(3);
+            obj.P = 5.*eye(3);
+            obj.I = 0.01.*eye(3);
+            obj.D = 0*eye(3);
 
             if isempty(rpy_dot_des)
                 rpy_dot_des = zeros(3, 1);
@@ -24,12 +24,14 @@ classdef attitude_controller < pid_controller
             % Calculate the error in radians
             rpy_err = deg2rad(rpy_des) - deg2rad(mult.State.RPY);
             % Calculate the rate in radians
+  
 
             rpy_dot_err = deg2rad(rpy_dot_des - mult.State.EulerRate);
 
             % Update the error integral
             obj.ErrorIntegral = obj.ErrorIntegral + rpy_err * dt;
- 
+            disp('ErrorIntegral')
+            disp(obj.ErrorIntegral)
             % Calculate the PID result
             euler_accel = eul_acc_des + obj.P * rpy_err + ...
                 obj.D * rpy_dot_err + obj.I * obj.ErrorIntegral;
@@ -43,7 +45,6 @@ classdef attitude_controller < pid_controller
             
             % Limit the output
             euler_accel = obj.LimitOutput(euler_accel);
-            disp(euler_accel)
             obj.LastTime = time;
         end
         
