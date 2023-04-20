@@ -15,7 +15,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 
         Q_rpy = diag([0.1 5 0]);
         Q_rpy_dot = diag([0.1 5 0]);
-        Q_u = diag([100 100 200 50]);
+        Q_u = diag([10 10 100 200 50]);
         Q_t = 30;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -25,18 +25,22 @@ classdef position_controller_fw_MPC_new < pid_controller
 
         acc_Max = [1; 1; 6]; % in m/s^2
         
-        U0 = zeros(30,4);
-        X0 = zeros(31,13); %, get solution TRAJECTORY
+        U0 = zeros(30,5);
+        X0 = zeros(31,14); %, get solution TRAJECTORY
         flag = 1;
         mpciter = 1;
         xx = [];
+        tiltIntegral = 0
  
     end
 
 
     methods
 
-        function [accel_des,rpy_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
+
+        function [accel_des,rpy_des,tilt_angle] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
+
+
             
 
             import casadi.*
@@ -51,7 +55,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             Init_last_rpy_dot = deg2rad(mult.State.LastEulerRate);
             Init_last_thrust =[sin(Init_Tilt);0;-cos(Init_Tilt)]'* mult.State.LastThrust; % Assuming tilting is the same in all servos
             
-            x_ref = [[27.7425;0;0];[0;0;0];[0;0;0];[0;0;0];0];
+            x_ref = [[27.7425;0;0];[0;0;0];pi/2;[0;0;0];[0;0;0];0];
             vel_des = x_ref(1:3);
             dt = time - obj.LastTime;
             
@@ -76,6 +80,8 @@ classdef position_controller_fw_MPC_new < pid_controller
             Yaw_dot = SX.sym('Yaw_dot');
             rpy_dot = [Roll_dot; Pitch_dot; Yaw_dot];
             
+            tilt = SX.sym('tilt');
+
             
             % Last body rate parametrization
             Roll_dot_last = SX.sym('Roll_dot_last');
@@ -88,7 +94,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             last_thrust = SX.sym('last_thrust');
             
             % 14x1
-            state = [V; rpy; rpy_dot; last_rpy_dot; last_thrust];
+            state = [V; rpy; rpy_dot;tilt; last_rpy_dot; last_thrust];
 
             n_states = length(state);
             % 3x1
@@ -98,24 +104,26 @@ classdef position_controller_fw_MPC_new < pid_controller
             rpy_MPC = [Roll_MPC; Pitch_MPC; Yaw_MPC];
             
             % Tilt speed parametrization
+            tilt_dot = SX.sym('tilt_dot');
             % Thrust
             Thrust = SX.sym('Thrust');
             % Control input
-            controls= [Thrust; rpy_MPC];
+            controls= [Thrust;tilt_dot ;rpy_MPC];
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             n_controls = length(controls);
             
             F_aero = obj.CalcAeroForce(V,rpy);
-            accel = obj.CalcAccel(F_aero,Thrust,rpy,Init_Tilt);
+            accel = obj.CalcAccel(F_aero,Thrust,rpy,tilt);
             accel = accel + physics.Gravity;
 
-            torque = CalcTorque(rpy_MPC,rpy,rpy_dot);
+            torque = CalcTorque(rpy_MPC,x_ref(4:6),rpy_dot,last_rpy_dot);
             
             %state update EQ
             rhs = [accel;
                 rpy_dot;
                 obj.I_inv*(torque);
+                tilt + tilt_dot*dt;
                 last_rpy_dot;
                 last_thrust];
             
@@ -135,7 +143,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             st = X(:,1);
             g = []; % constraints vector
-            g = [g;st-P(1:13)];  %init constraint
+            g = [g;st-P(1:14)];  %init constraint
             
             objective_function = 0;
             
@@ -166,7 +174,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                 k4 = f(st + h*k3, con);
                 st_RK4_next = st + h/6* (k1 +2*k2 + 2*k3 +k4);
                 % g = [f(N-1) - x(N)]
-                g = [g;st_next - st_RK4_next(1:13)];
+                g = [g;st_next - st_RK4_next(1:14)];
             end
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
@@ -190,30 +198,33 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.ubg(1:n_states*(N+1)) = 1e-20;
             
             % input and states constraints
-            args.lbx(1:13:13*(N+1),1) = -40; args.ubx(1:13:13*(N+1),1) = 40; %V in m/s
-            args.lbx(2:13:13*(N+1),1) = -40; args.ubx(2:13:13*(N+1),1) = 40;
-            args.lbx(3:13:13*(N+1),1) = -10; args.ubx(3:13:13*(N+1),1) = 10;
-            args.lbx(4:13:13*(N+1),1) = -pi/4; args.ubx(4:13:13*(N+1),1) = pi/4; %rpy in radian
-            args.lbx(5:13:13*(N+1),1) = -pi/4; args.ubx(5:13:13*(N+1),1) = pi/4;
-            args.lbx(6:13:13*(N+1),1) = -inf; args.ubx(6:13:13*(N+1),1) = inf;
-            args.lbx(7:13:13*(N+1),1) = -pi; args.ubx(7:13:13*(N+1),1) = pi; %rpy_dot in radian
-            args.lbx(8:13:13*(N+1),1) = -pi; args.ubx(6:13:13*(N+1),1) = pi;
-            args.lbx(9:13:13*(N+1),1) = -pi; args.ubx(9:13:13*(N+1),1) = pi;
-            args.lbx(10:13:13*(N+1),1) = -pi; args.ubx(10:13:13*(N+1),1) = pi; %rpy_dot last set points in degree
-            args.lbx(11:13:13*(N+1),1) = -pi; args.ubx(11:13:13*(N+1),1) = pi;
-            args.lbx(12:13:13*(N+1),1) = -pi; args.ubx(12:13:13*(N+1),1) = pi;
-            args.lbx(13:13:13*(N+1),1) = 0; args.ubx(13:13:13*(N+1),1) = 70; %thrust in N calculated from max pitch angle and weight
+            args.lbx(1:n_states:n_states*(N+1),1) = -40; args.ubx(1:n_states:n_states*(N+1),1) = 40; %V in m/s
+            args.lbx(2:n_states:n_states*(N+1),1) = -40; args.ubx(2:n_states:n_states*(N+1),1) = 40;
+            args.lbx(3:n_states:n_states*(N+1),1) = -10; args.ubx(3:n_states:n_states*(N+1),1) = 10;
+            args.lbx(4:n_states:n_states*(N+1),1) = -pi/4; args.ubx(4:n_states:n_states*(N+1),1) = pi/4; %rpy in radian
+            args.lbx(5:n_states:n_states*(N+1),1) = -pi/4; args.ubx(5:n_states:n_states*(N+1),1) = pi/4;
+            args.lbx(6:n_states:n_states*(N+1),1) = -inf; args.ubx(6:n_states:n_states*(N+1),1) = inf;
+            args.lbx(7:n_states:n_states*(N+1),1) = -pi; args.ubx(7:n_states:n_states*(N+1),1) = pi; %rpy_dot in radian
+            args.lbx(8:n_states:n_states*(N+1),1) = -pi; args.ubx(6:n_states:n_states*(N+1),1) = pi;
+            args.lbx(9:n_states:n_states*(N+1),1) = -pi; args.ubx(9:n_states:n_states*(N+1),1) = pi;
+            args.lbx(10:n_states:n_states*(N+1),1) = 0; args.ubx(10:n_states:n_states*(N+1),1) = pi/2; %rpy_dot last set points in degree
+            args.lbx(11:n_states:n_states*(N+1),1) = -pi; args.ubx(11:n_states:n_states*(N+1),1) = pi;
+            args.lbx(12:n_states:n_states*(N+1),1) = -pi; args.ubx(12:n_states:n_states*(N+1),1) = pi;
+            args.lbx(13:n_states:n_states*(N+1),1) = -pi; args.ubx(13:n_states:n_states*(N+1),1) = pi; %thrust in N calculated from max pitch angle and weight
+            args.lbx(14:n_states:n_states*(N+1),1) = 0; args.ubx(14:n_states:n_states*(N+1),1) = 80; %thrust in N calculated from max pitch angle and weight
+
+            args.lbx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 80; %thrust in Newton calculated from max pitch angle and weight
             
-            args.lbx(13*(N+1)+1:4:13*(N+1)+4*N,1) = 0; args.ubx(13*(N+1)+1:4:13*(N+1)+4*N,1) = 70; %thrust in Newton calculated from max pitch angle and weight
-            args.lbx(13*(N+1)+2:4:13*(N+1)+4*N,1) = -pi/4; args.ubx(13*(N+1)+2:4:13*(N+1)+4*N,1) = pi/4; %rpy_MPC in degree
-            args.lbx(13*(N+1)+3:4:13*(N+1)+4*N,1) = -pi/4; args.ubx(13*(N+1)+3:4:13*(N+1)+4*N,1) = pi/4;
-            args.lbx(13*(N+1)+4:4:13*(N+1)+4*N,1) = -pi/2; args.ubx(13*(N+1)+4:4:13*(N+1)+4*N,1) = pi/2;
-            
+            args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4; %rpy_MPC in degree
+            args.lbx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
+            args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/2; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = pi/2;
+            args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/2; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = pi/2;
+
             
             %run mpc
             
-            x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_last_rpy_dot;Init_last_thrust];
-            u_trim = zeros(4,1);
+            x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_Tilt;Init_last_rpy_dot;Init_last_thrust];
+            u_trim = [2;0;0;0;0];
             
             
             args.p = [x_state;x_ref];
@@ -228,8 +239,8 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             
             
-            reshape_a = reshape(obj.X0',13*(N+1),1);
-            reshape_b = reshape(obj.U0',4*N,1) ;
+            reshape_a = reshape(obj.X0',n_states*(N+1),1);
+            reshape_b = reshape(obj.U0',n_controls*N,1) ;
             
             args.x0 = [reshape_a; reshape_b];
             
@@ -239,38 +250,32 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             solver.stats().return_status
             
-            u = reshape(full(sol.x(13*(N+1)+1:end))',4,N)'; % get controls only from the solution
+            u = reshape(full(sol.x(n_states*(N+1)+1:end))',n_controls,N)'; % get controls only from the solution
             obj.U0 = [u(2:size(u,1),:);u(size(u,1),:)];
             
-            x0 = reshape(full(sol.x(1:13*(N+1)))',13,N+1)'; % get solution TRAJECTORY
+            x0 = reshape(full(sol.x(1:n_states*(N+1)))',n_states,N+1)'; % get solution TRAJECTORY
             
             obj.X0 = [x_state';x0(3:end,:);x0(end,:)];
             
             control = u(1,:)';
             
-            R_BR =[sind(mult.Servos{1}.CurrentAngle);
+            
+            R_BR =[sin(pi/2);
                 0         ;
-                -cosd(mult.Servos{1}.CurrentAngle)];
-    
-            disp("angle")
-            disp(mult.Servos{1}.CurrentAngle)
-
-            R_i2b = GetRotationMatrix(Init_rpy(1), Init_rpy(2), Init_rpy(3));
+                -cos(pi/2)];
+            
+            R_i2b = GetRotationMatrix(deg2rad(Init_rpy(1)), deg2rad(Init_rpy(2)), deg2rad(Init_rpy(3)));
             
             R_b2i = R_i2b';
 
             thrust_des = R_b2i * R_BR * control(1);
-            thrust_des = round(thrust_des,3);
-
-            accel_des  = thrust_des ./ obj.Mass;
-            rpy_des = rad2deg(control(2:4));
-            obj.LastTime = time;
-
-            disp(thrust_des)
-            
+            accel_des  = thrust_des / obj.Mass;
+            rpy_des = rad2deg(control(3:5));
+            tilt_speed = rad2deg(control(2));
+            obj.LastTime = time;  
+            obj.tiltIntegral = obj.tiltIntegral + tilt_speed*dt;
+            tilt_angle = Init_Tilt + obj.tiltIntegral;
             disp(rpy_des)
-            
-            
             
         end
         
@@ -285,7 +290,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             V_b = R_i2b*V;
             
-            a = atan(V_b(3)/V_b(1))*180/pi; %angle attack;
+            a = atan(V_b(3)/V_b(1)); %angle attack;
             b = 0;
             
             R_BW = [cos(a) * cos(b),    sin(b),     sin(a)*cos(b);
@@ -294,35 +299,38 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             R_WB = R_BW';
             
+            
             V_air = R_BW*V_b;
-            %       disp((V' * V))
+            
+            a_deg = a*180/pi;
+  
             q_bar = (V_air' * V_air) * physics.AirDensity / 2;
             c_y = 0;
-            c_z = 0.35 + 0.11 * a;
-            c_d = 0.01 + 0.2 * a * a;
-            drag = q_bar * obj.WingSurfaceArea * c_d;
+            c_z = 0.35 + 0.11 * a_deg;
+            c_d = 0.01 + 0.2 * a_deg * a_deg;
+            drag = q_bar * obj.WingSurfaceArea * 0.01;
             lateral = q_bar * obj.WingSurfaceArea * c_y;
-            lift = q_bar * obj.WingSurfaceArea * c_z;
-            %       disp(size(q_bar))
-            force = R_WB * [-drag; lateral;-lift];
+            lift = q_bar * obj.WingSurfaceArea * 0.35;
+
+            force = R_i2b'*R_WB * [-drag; lateral;-lift];
+
         end
         
         
         function accel = CalcAccel(obj,F_a,T,rpy,tilt)
-            
-            
+            tilt = pi/2;
             RBR = [sin(tilt);
                 0;
                 -cos(tilt)];
             
-            T_Body = RBR * T;
-            
-            F_tot = F_a + T_Body;
-            
             R_i2b = GetRotationMatrix(rpy(1),rpy(2),rpy(3));
             R_b2i = R_i2b';
-            F_Inertial = R_b2i * F_tot;
-            accel = F_Inertial / obj.Mass;
+
+            T_inertial =R_b2i* RBR * T;
+            
+            F_tot = F_a + T_inertial;
+
+            accel = F_tot / obj.Mass;
         end
         
         
@@ -338,23 +346,33 @@ end
 
 %R_i2b
 function Rot_BI = GetRotationMatrix(roll, pitch, yaw)
-    s_ph = sin(roll);
-    s_th = sin(pitch);
-    s_ps = sin(yaw);
-    c_ph = cos(roll);
-    c_th = cos(pitch);
-    c_ps = cos(yaw);
-    Rot_BI = [ c_th * c_ps                      ,       c_th * s_ps                      ,          -s_th;
-               s_ph * s_th * c_ps - c_ph * s_ps ,       s_ph * s_th * s_ps + c_ph * c_ps ,          s_ph * c_th;
-               c_ph * s_th * c_ps + s_ph * s_ps ,       c_ph * s_th * s_ps - s_ph * c_ps ,          c_ph * c_th  ];
+            angles = [yaw pitch roll];
+
+            RNI = zeros(3, 3);
+            cang = cos(angles);
+            sang = sin(angles);
+
+            %     [          cy*cz,          cy*sz,            -sy]
+            %     [ sy*sx*cz-sz*cx, sy*sx*sz+cz*cx,          cy*sx]
+            %     [ sy*cx*cz+sz*sx, sy*cx*sz-cz*sx,          cy*cx]
+
+            Rot_BI(1,1) = cang(2).*cang(1);
+            Rot_BI(1,2) = cang(2).*sang(1);
+            Rot_BI(1,3) = -sang(2);
+            Rot_BI(2,1) = sang(3).*sang(2).*cang(1) - cang(3).*sang(1);
+            Rot_BI(2,2) = sang(3).*sang(2).*sang(1) + cang(3).*cang(1);
+            Rot_BI(2,3) = sang(3).*cang(2);
+            Rot_BI(3,1) = cang(3).*sang(2).*cang(1) + sang(3).*sang(1);
+            Rot_BI(3,2) = cang(3).*sang(2).*sang(1) - sang(3).*cang(1);
+            Rot_BI(3,3) = cang(3).*cang(2);
 end
 
-function Torque = CalcTorque(rpyMPC,rpy,rpy_dot) %assuming same thrust and tilt for 4 rotor
+function Torque = CalcTorque(rpyMPC,rpy_ref,rpy_dot,rpy_last) %assuming same thrust and tilt for 4 rotor
 
-body_rate_sp = diag([0.1,1,0.1])* (rpyMPC - rpy);
-Torque = diag([0.1,1,0.1]) * (body_rate_sp - rpy_dot);
-% show(body_rate_sp)
-% disp(Torque)
+body_rate_sp = diag([0.1,2,0.1])* (rpy_ref - rpyMPC);
+
+Torque = diag([0.1,2,0.1]) * (body_rate_sp - rpy_dot); 
+
 end
 
 function [x0, u0] = shift(T, x0, u,f)
