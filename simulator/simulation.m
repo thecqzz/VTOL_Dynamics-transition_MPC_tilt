@@ -155,6 +155,9 @@ classdef simulation < handle
             
             tilt1_des = plantinput.ServoAngles(1);
             tilt2_des = plantinput.ServoAngles(2);
+
+            disp("logger tilt")
+            disp(tilt1_des)
           
             angleerr = zeros(2,1);
             angleerr(1) = servoangles(1) - tilt1_des;
