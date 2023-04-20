@@ -1,0 +1,10 @@
+classdef position_strategies
+   enumeration
+      FW_POSCTRL_MODE_AUTO,
+      FW_POSCTRL_MODE_AUTO_ALTITUDE,
+      FW_POSCTRL_MODE_AUTO_CLIMBRATE,
+      FW_POSCTRL_MODE_AUTO_LANDING,
+      FW_POSCTRL_MODE_AUTO_TAKEOFF,
+      FW_POSCTRL_MODE_OTHER
+   end
+end
