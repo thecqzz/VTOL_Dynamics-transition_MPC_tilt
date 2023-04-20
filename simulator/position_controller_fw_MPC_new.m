@@ -346,25 +346,16 @@ end
 
 %R_i2b
 function Rot_BI = GetRotationMatrix(roll, pitch, yaw)
-            angles = [yaw pitch roll];
 
-            RNI = zeros(3, 3);
-            cang = cos(angles);
-            sang = sin(angles);
-
-            %     [          cy*cz,          cy*sz,            -sy]
-            %     [ sy*sx*cz-sz*cx, sy*sx*sz+cz*cx,          cy*sx]
-            %     [ sy*cx*cz+sz*sx, sy*cx*sz-cz*sx,          cy*cx]
-
-            Rot_BI(1,1) = cang(2).*cang(1);
-            Rot_BI(1,2) = cang(2).*sang(1);
-            Rot_BI(1,3) = -sang(2);
-            Rot_BI(2,1) = sang(3).*sang(2).*cang(1) - cang(3).*sang(1);
-            Rot_BI(2,2) = sang(3).*sang(2).*sang(1) + cang(3).*cang(1);
-            Rot_BI(2,3) = sang(3).*cang(2);
-            Rot_BI(3,1) = cang(3).*sang(2).*cang(1) + sang(3).*sang(1);
-            Rot_BI(3,2) = cang(3).*sang(2).*sang(1) - sang(3).*cang(1);
-            Rot_BI(3,3) = cang(3).*cang(2);
+    s_ph = sin(roll);
+    s_th = sin(pitch);
+    s_ps = sin(yaw);
+    c_ph = cos(roll);
+    c_th = cos(pitch);
+    c_ps = cos(yaw);
+    Rot_BI = [ c_th * c_ps                      ,       c_th * s_ps                      ,          -s_th;
+               s_ph * s_th * c_ps - c_ph * s_ps ,       s_ph * s_th * s_ps + c_ph * c_ps ,          s_ph * c_th;
+               c_ph * s_th * c_ps + s_ph * s_ps ,       c_ph * s_th * s_ps - s_ph * c_ps ,          c_ph * c_th  ];
 end
 
 function Torque = CalcTorque(rpyMPC,rpy_ref,rpy_dot,rpy_last) %assuming same thrust and tilt for 4 rotor

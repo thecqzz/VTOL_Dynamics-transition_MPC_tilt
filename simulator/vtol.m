@@ -59,7 +59,7 @@ classdef vtol < multirotor
 % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
 % full areo
-%               wrench(4:6) = wrench(4:6) + force(1:3);
+              wrench(4:6) = wrench(4:6) + force(1:3);
 % lift only            
 %             wrench(6:6) = wrench(6:6) + force(3:3);
 
@@ -138,9 +138,9 @@ classdef vtol < multirotor
 %             c_z = C_Z0 + C_Za * alpha; 
 %             c_x = C_D0 + C_Da * alpha * alpha; 
 
-            drag_cal = q_bar * obj.WingSurfaceArea * c_x;
+            drag_cal = q_bar * obj.WingSurfaceArea * 0.01;
             lateral_cal = q_bar * obj.WingSurfaceArea * c_y;
-            lift_cal = q_bar * obj.WingSurfaceArea * c_z;
+            lift_cal = q_bar * obj.WingSurfaceArea * 0.35;
                     
 %             air_speed_norm = norm(obj.State.Velocity);
 % 
