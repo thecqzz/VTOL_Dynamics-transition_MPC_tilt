@@ -246,46 +246,7 @@ classdef simulation < handle
             logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel);
         end
 
-        function NextStepHMFController(obj, time)
-            % Calculate the multirotor command for a desired motion and force
-
-            if ~last_commands.DesiredWaypoint.IsInitialized() ...
-                    || ~last_commands.ContactNormal.IsInitialized()
-                return;
-            end
-
-            waypoint_des = last_commands.DesiredWaypoint.Data;
-            contact_normal = last_commands.ContactNormal.Data;
-
-            vel_mat = diag([0, 1, 1]);
-            force_constraint = [-1; 0; 0];
-            [lin_accel, rpy_des] = obj.Controller.ControlMotionAndForce(obj.Multirotor, ...
-                waypoint_des.Force, waypoint_des.Position, waypoint_des.RPY(3), [], [], contact_normal, ...
-                vel_mat, force_constraint, time);
-
-            last_commands.DesiredRPY.Set(rpy_des, time);
-            last_commands.DesiredLinearAcceleration.Set(lin_accel, time);
-            logger.Add(logger_signals.DesiredRPY, rpy_des);
-            logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel);
-        end
-
-        function NextStepTrajectoryController(obj, time)
-            % Calculate the multirotor command for a desired trajectpry
-
-            contact_force = [];
-            if last_commands.ContactForce.IsInitialized()
-                contact_force = last_commands.ContactForce.Data;
-            end
-
-            next_wp = obj.TrajectoryController.CalcLookaheadPoint(obj.Multirotor.State.Position, ...
-                obj.Multirotor.State.RPY(3), contact_force, obj.Multirotor.State.InCollision);
-            if time >= 0
-                logger.Add(logger_signals.DesiredPositionYaw, [next_wp.Position; next_wp.RPY(3)]);
-            else
-                time = 0;
-            end
-            last_commands.DesiredWaypoint.Set(next_wp, time);
-        end
+      
 
         function success = NextSimulationStep(obj)
             % set up wait bar

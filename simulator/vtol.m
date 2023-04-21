@@ -58,10 +58,10 @@ classdef vtol < multirotor
             wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
 % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
-% full areo
-%               wrench(4:6) = wrench(4:6) + force(1:3);
+%full areo
+              wrench(4:6) = wrench(4:6) + force(1:3);
 % lift only            
-             wrench(6:6) = wrench(6:6) + force(3:3);
+%              wrench(6:6) = wrench(6:6) + force(3:3);
 
 
         end
@@ -138,7 +138,7 @@ classdef vtol < multirotor
 %             c_z = C_Z0 + C_Za * alpha; 
 %             c_x = C_D0 + C_Da * alpha * alpha; 
 
-            drag_cal = q_bar * obj.WingSurfaceArea * 0.01;
+            drag_cal = q_bar * obj.WingSurfaceArea * 0.07;
             lateral_cal = q_bar * obj.WingSurfaceArea * c_y;
             lift_cal = q_bar * obj.WingSurfaceArea * 0.35;
                     
@@ -177,7 +177,7 @@ classdef vtol < multirotor
 
 
             force = rib * rbw * [-drag; lateral; -lift];
-
+            force = [0;0;0];
         end
 
         
