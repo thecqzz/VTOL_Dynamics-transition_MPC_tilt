@@ -1,8 +1,10 @@
 classdef attitude_controller < pid_controller
 
     properties
-         RateLimits = deg2rad([70; 70; 30]); % in rad/s
-         OutputMax = deg2rad([8; 8; 8]); % in rad/s^2
+
+         RateLimits = deg2rad([100; 100; 50]); % in rad/s
+         OutputMax = deg2rad([15; 15; 15]); % in rad/s^2
+
 
     end
     
@@ -10,9 +12,9 @@ classdef attitude_controller < pid_controller
 
         function euler_accel = CalculateControlCommand(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, time)%time
 
-            obj.P = 9.*eye(3);
-            obj.I = 0.1.*eye(3);
-            obj.D = 3*eye(3);
+            obj.P = 30.*eye(3);
+            obj.I = 1.*eye(3);
+            obj.D = 10.*eye(3);
 
             if isempty(rpy_dot_des)
                 rpy_dot_des = zeros(3, 1);
@@ -42,8 +44,6 @@ classdef attitude_controller < pid_controller
             obj.LimitErrorIntegral(euler_accel, rpy_err, rpy_dot_err)
             
             % Limit the output
-           
-            disp(euler_accel)
             obj.LastTime = time;
         end
         
