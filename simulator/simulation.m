@@ -117,7 +117,7 @@ classdef simulation < handle
             end
             rpy_des = last_commands.DesiredRPY.Data;
             rpy_dot_des = obj.Multirotor.State.LastEulerRate;
-            euler_accel = obj.Controller.ControlAttitude(obj.Multirotor, rpy_des, rpy_dot_des, [0;0;0], time);
+            euler_accel = obj.Controller.ControlAttitude(obj.Multirotor, rpy_des, [], [], time);
 
             last_commands.DesiredEulerAcceleration.Set(euler_accel, time);
             logger.Add(logger_signals.DesiredEulerAcceleration, euler_accel);
