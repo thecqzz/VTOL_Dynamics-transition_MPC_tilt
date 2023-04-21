@@ -27,16 +27,21 @@ classdef controller < handle
         
         function euler_accel = ControlAttitude(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, dt)
 
-                euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
-
+                 euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
+                
+%                 euler_accel = [0,0,0]';
         end
 
 
         function [lin_accel, rpy_des, tilt] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-              [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
-              
+               [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+            
+%               tilt = 90;
+% 
+%               lin_accel = [2.5981, 0, -1.5000]';
+%               rpy_des = [0,0,0]';
 
             
         end
