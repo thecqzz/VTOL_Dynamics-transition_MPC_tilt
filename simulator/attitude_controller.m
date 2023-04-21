@@ -14,7 +14,7 @@ classdef attitude_controller < pid_controller
 
             obj.P = 30.*eye(3);
             obj.I = 1.*eye(3);
-           obj.D = 10.*eye(3);
+            obj.D = 10.*eye(3);
 
             if isempty(rpy_dot_des)
                 rpy_dot_des = zeros(3, 1);

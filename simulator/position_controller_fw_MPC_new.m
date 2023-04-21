@@ -55,8 +55,6 @@ classdef position_controller_fw_MPC_new < pid_controller
             Init_last_rpy_dot = deg2rad(mult.State.LastEulerRate);
             Init_last_thrust =[sin(Init_Tilt);0;-cos(Init_Tilt)]'* mult.State.LastThrust; % Assuming tilting is the same in all servos
           
-
-
             x_ref = [[0;0;-3];[0;0;0];0;[0;0;0];[0;0;0];72];
             vel_des = x_ref(1:3);
             dt = time - obj.LastTime;
@@ -277,13 +275,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             tilt_angle = rad2deg(Init_Tilt + obj.tiltIntegral);
             
 
-            disp('thrust')
-            disp(thrust_des)
-            
-            disp(Init_Tilt)
-            disp('Init_Vel')
-
-            disp(Init_Vel)
+ 
   
             
         end
