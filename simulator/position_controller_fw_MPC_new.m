@@ -55,7 +55,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             Init_last_rpy_dot = deg2rad(mult.State.LastEulerRate);
             Init_last_thrust =[sin(Init_Tilt);0;-cos(Init_Tilt)]'* mult.State.LastThrust; % Assuming tilting is the same in all servos
           
-            x_ref = [[0;0;-3];[0;0;0];0;[0;0;0];[0;0;0];72];
+            x_ref = [[0;0;-3];[0;0;0];[0;0;0];0;[0;0;0];72];
             vel_des = x_ref(1:3);
             dt = time - obj.LastTime;
             
