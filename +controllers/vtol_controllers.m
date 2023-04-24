@@ -5,11 +5,7 @@ function c = vtol_controllers(mult)
 %     c.AttitudeController.SetPID(1000, 5, 600);
 %     c.PositionController.SetPID(3, 0, 7);
 
-<<<<<<< Updated upstream
     c.AttitudeController.SetPID(30, 0, 10);
-=======
-    c.AttitudeController.SetPID(30, 1, 10);
->>>>>>> Stashed changes
     c.PositionController.SetPID(10, 0, 1);
 
 
