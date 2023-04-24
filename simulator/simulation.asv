@@ -118,7 +118,8 @@ classdef simulation < handle
             rpy_des = last_commands.DesiredRPY.Data;
             rpy_dot_des = obj.Multirotor.State.LastEulerRate;
             euler_accel = obj.Controller.ControlAttitude(obj.Multirotor, rpy_des, [], [], time);
-
+            disp('euler_accel')
+            disp(euler_accel)
             last_commands.DesiredEulerAcceleration.Set(euler_accel, time);
             logger.Add(logger_signals.DesiredEulerAcceleration, euler_accel);
         end
@@ -234,7 +235,8 @@ classdef simulation < handle
             
             [lin_accel, rpy_des, tilt] = obj.Controller.ControlPosition(obj.Multirotor, ...
                 waypoint_des.Position, waypoint_des.RPY(3), [], [], time);
-
+            disp('att time')
+            disp(time)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
 %             plantinput.ServoAngles = [tilt,tilt]';
@@ -395,7 +397,8 @@ classdef simulation < handle
             end
 
 
-
+% % % %             disp("show wrench 1 here")
+% % % %             disp(wrench(4:6))
 
 
             new_state = obj.Multirotor.CalcNextState(wrench, Thrust_Body,...
