@@ -24,10 +24,11 @@ sim = simulation(m, c, w);
 pos = [0; 0; -200];
 
 % vel = [17.3005; 0; 0];
-vel = [0; 0; -2];
+vel = [0; 0; 0];
 rpy = [0; 0; 0];
 omega = [0; 0; 0];
-sim.Multirotor.SetInitialState(pos, vel, rpy, omega);
+lastThrust = [0;0;0];
+sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 
 %% Get the controller response(s)
 

@@ -122,12 +122,14 @@ classdef multirotor < handle
             obj.InitializeDynamicsMethod();
         end
         
-        function SetInitialState(obj, pos, vel, rpy, omega)
+        function SetInitialState(obj, pos, vel, rpy, omega,lastThrust)
             obj.InitialState.Position = pos;
             obj.InitialState.Velocity = vel;
             obj.InitialState.RPY = rpy;
             obj.InitialState.Omega = omega;
-            
+            obj.InitialState.LastThrust = lastThrust;
+
+            obj.State.LastThrust = lastThrust;
             obj.State.Position = pos;
             obj.State.Velocity = vel;
             obj.State.RPY = rpy;

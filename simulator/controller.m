@@ -36,12 +36,17 @@ classdef controller < handle
         function [lin_accel, rpy_des, tilt] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-               [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
-            
-%               tilt = 90;
-% 
-%               lin_accel = [2.5981, 0, -1.5000]';
+                 [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+                           
+%               tilt = 45;
+%               lin_accel = [5*sind(45), 0, -5*cosd(45)]';
+%               rpy_des = [0,5,0]';
+
+%               tilt = 0;
+%               lin_accel = [0,0, 0]';
 %               rpy_des = [0,0,0]';
+
+
 
             
         end

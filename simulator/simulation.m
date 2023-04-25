@@ -53,7 +53,7 @@ classdef simulation < handle
             % Keep some state fields
             istate = obj.Multirotor.InitialState;
             obj.Multirotor.CopyFrom(obj.InitialMultirotor);
-            obj.Multirotor.SetInitialState(istate.Position, istate.Velocity, istate.RPY, istate.Omega);
+            obj.Multirotor.SetInitialState(istate.Position, istate.Velocity, istate.RPY, istate.Omega,istate.LastThrust);
             logger.Reset();
         end
 
