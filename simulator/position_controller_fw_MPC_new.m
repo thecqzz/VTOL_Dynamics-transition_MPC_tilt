@@ -228,8 +228,6 @@ classdef position_controller_fw_MPC_new < pid_controller
             x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_Tilt;Init_last_rpy_dot;Init_last_thrust];
             u_trim = [obj.Mass*9.81;0;0;0;0];
             
-            disp('x_state')
-            disp(x_state)
             args.p = [x_state;x_ref];
             %             obj.X0 = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_Tilt;Init_last_rpy_dot;Init_last_thrust]; % initial condition.
             

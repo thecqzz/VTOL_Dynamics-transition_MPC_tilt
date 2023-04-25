@@ -27,16 +27,24 @@ classdef attitude_controller < pid_controller
             rpy_err = deg2rad(rpy_des) - deg2rad(mult.State.RPY);
 
             for i = 1:3
-                if rpy_err(i) < 1.0e-10 & rpy_err(i) > -1.0e-10
+                if rpy_err(i) < 1.0e-6 & rpy_err(i) > -1.0e-6
                     rpy_err(i) = 0;
                 end
+            end
+
+            %% guard
+            
+            for i = 1:3
+            if rpy_err(i) > 90
+                disp("error check att controller")
+            end
             end
 
             % Calculate the rate in radians
             rpy_dot_err = deg2rad(rpy_dot_des - mult.State.EulerRate);
 
             for i = 1:3
-                if rpy_dot_err(i) < 1.0e-10 & rpy_dot_err(i) > -1.0e-10
+                if rpy_dot_err(i) < 1.0e-6 & rpy_dot_err(i) > -1.0e-6
                     rpy_dot_err(i) = 0;
                 end
             end
@@ -45,7 +53,7 @@ classdef attitude_controller < pid_controller
             obj.ErrorIntegral = obj.ErrorIntegral + rpy_err * dt;
 
             for i = 1:3
-                if obj.ErrorIntegral(i) < 1.0e-10 & obj.ErrorIntegral(i) > -1.0e-10
+                if obj.ErrorIntegral(i) < 1.0e-6 & obj.ErrorIntegral(i) > -1.0e-6
                     obj.ErrorIntegral(i) = 0;
                 end
             end
