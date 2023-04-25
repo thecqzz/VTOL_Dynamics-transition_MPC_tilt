@@ -5,7 +5,7 @@ function c = vtol_controllers(mult)
 %     c.AttitudeController.SetPID(1000, 5, 600);
 %     c.PositionController.SetPID(3, 0, 7);
 
-    c.AttitudeController.SetPID(30, 0, 10);
+    c.AttitudeController.SetPID(20, 0, 10);
     c.PositionController.SetPID(10, 0, 1);
 
 
