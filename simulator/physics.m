@@ -71,11 +71,7 @@ classdef physics
             RNI = zeros(3, 3);
             cang = cos(angles);
             sang = sin(angles);
-
-            %     [          cy*cz,          cy*sz,            -sy]
-            %     [ sy*sx*cz-sz*cx, sy*sx*sz+cz*cx,          cy*sx]
-            %     [ sy*cx*cz+sz*sx, sy*cx*sz-cz*sx,          cy*cx]
-
+            
             RNI(1,1) = cang(2).*cang(1);
             RNI(1,2) = cang(2).*sang(1);
             RNI(1,3) = -sang(2);

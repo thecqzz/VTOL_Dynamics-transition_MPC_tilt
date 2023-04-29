@@ -6,13 +6,13 @@ function m = vtol_custom(add_arm)
     RotorPlacementAngles = [30, 150, 210, 330];
     RotorRotationDirections = [-1, 1, -1, 1];    
     RotorDihedralAngle = 0;
-%                   RotorSidewardAngle = [30, 30, -30, -30]; 
-%                   RotorInwardAngle = [-90, 90, 90, -90];
+                  RotorSidewardAngle = [30, 30, -30, -30]; 
+                  RotorInwardAngle = [-90, 90, 90, -90];
 
 
 
-               RotorSidewardAngle = 0; 
-               RotorInwardAngle = 0;
+%                RotorSidewardAngle = 0; 
+%                RotorInwardAngle = 0;
 
     m = vtol(RotorPlacementAngles, RotorRotationDirections);
     m.SetRotorAngles(RotorInwardAngle, RotorSidewardAngle, RotorDihedralAngle);
@@ -29,8 +29,8 @@ function m = vtol_custom(add_arm)
     m.PayloadRadius = 0.5;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%this needs to be change to 90 for FW, 0 for MC !!!!!%%%%%%
-    m.AddServo([1, 4], [0; -1; 0], 0);
-    m.AddServo([2, 3], [0; -1; 0], 0);
+    m.AddServo([1, 4], [0; -1; 0], 90);
+    m.AddServo([2, 3], [0; -1; 0], 90);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for i = 1 : m.NumOfServos
         m.Servos{i}.MaxRate = 10; % deg/s

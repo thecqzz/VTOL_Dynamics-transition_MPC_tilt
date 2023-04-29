@@ -138,7 +138,7 @@ classdef vtol < multirotor
 %             c_z = C_Z0 + C_Za * alpha; 
 %             c_x = C_D0 + C_Da * alpha * alpha; 
 
-            drag_cal = q_bar * obj.WingSurfaceArea * 0.07;
+            drag_cal = q_bar * obj.WingSurfaceArea * 0.03;
             lateral_cal = q_bar * obj.WingSurfaceArea * c_y;
             lift_cal = q_bar * obj.WingSurfaceArea * 0.35;
                     
@@ -177,7 +177,6 @@ classdef vtol < multirotor
 
 
             force = rib * rbw * [-drag; lateral; -lift];
-            force = [0;0;0];
         end
 
         

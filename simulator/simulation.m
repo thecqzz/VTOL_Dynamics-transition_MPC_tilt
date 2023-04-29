@@ -234,13 +234,11 @@ classdef simulation < handle
             
             [lin_accel, rpy_des, tilt] = obj.Controller.ControlPosition(obj.Multirotor, ...
                 waypoint_des.Position, waypoint_des.RPY(3), [], [], time);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
 %             plantinput.ServoAngles = [tilt,tilt]';
             obj.tilt_store = tilt;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
             last_commands.DesiredRPY.Set(rpy_des, time);
             last_commands.DesiredLinearAcceleration.Set(lin_accel, time);
             logger.Add(logger_signals.DesiredRPY, rpy_des);
