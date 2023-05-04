@@ -27,8 +27,8 @@ classdef vtol < multirotor
         is_transition = false;
 
         % steady fw speed  =  27.7425;
-        blending_air_speed = 10;   
-        Transition_air_speed = 23; 
+        blending_air_speed = 16.6455;   % 0.6 of fw speed
+        Transition_air_speed = 22.1940; % 0.8 of fw speed
 
     end
 
@@ -60,9 +60,9 @@ classdef vtol < multirotor
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
-                          wrench(4:6) = wrench(4:6) + force(1:3);
+            wrench(4:6) = wrench(4:6) + force(1:3);
             % lift only
-%                           wrench(6:6) = wrench(6:6) + force(3:3);
+            %              wrench(6:6) = wrench(6:6) + force(3:3);
 
 
         end
@@ -147,15 +147,7 @@ classdef vtol < multirotor
 
             air_speed_norm = norm(obj.State.Velocity);
 
-            coeff = aero_blending(obj, air_speed_norm);
-
-            drag = coeff * drag;
-            lateral = coeff * lateral;
-            lift = coeff * lift;
-
-            disp(air_speed_norm)
-            disp(coeff)
-
+            coeff = 
 
             %% frame change
             rbi = obj.GetRotationMatrix();
@@ -245,19 +237,17 @@ classdef vtol < multirotor
 
         function coeff = aero_blending(obj, air_speed_norm)
 
-            x = -10:.001:100;
-
-            dist = 2;
+            x = -100:.001:100;
             f1 = @(x) 0;
-            f2 = @(x)  0.5 * (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
-            foo = blend(f1, f2, 16, dist);
+            f2 = @(x) (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
+            dist = 1;
+            foo = blend(f1, f2, 19, dist);
 
             f3 = @(x) foo(x);
             f4 = 1;
-            foo = blend(f3, f4, 18, dist);
+            foo = blend(f3, f4, 20, dist);
 
             coeff = foo(air_speed_norm);
-
         end
 
 
