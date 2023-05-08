@@ -32,6 +32,13 @@ classdef position_controller_fw_MPC_new < pid_controller
         tiltIntegral = 0
         tilt_angle_max = pi/2
         tilt_angle_min = 0
+
+
+        % steady fw speed  =  27.7425;
+        blending_air_speed = 10;   
+        Transition_air_speed = 23; 
+
+
     end
 
 
@@ -245,9 +252,10 @@ classdef position_controller_fw_MPC_new < pid_controller
     
             obj.U0 = [u(2:size(u,1),:);u(size(u,1),:)];
             x0 = reshape(full(sol.x(1:n_states*(N+1)))',n_states,N+1)'; % get solution TRAJECTORY
-            disp(x0)
-            disp(u)
-            disp(x_state')
+
+           
+%             disp(x_state')
+
 
             obj.X0 = [x_state';x0(3:end,:);x0(end,:)];
             control = u(1,:)';
@@ -266,6 +274,11 @@ classdef position_controller_fw_MPC_new < pid_controller
             obj.tiltIntegral = obj.tiltIntegral + tilt_speed*dt;
             tilt_angle = Init_Tilt + obj.tiltIntegral;
             tilt_angle = rad2deg(limit_tilt(obj,tilt_angle));
+
+
+%             disp(rpy_des)
+%             disp(thrust_des)
+%             disp(rad2deg(tilt_speed))
 
             obj.LastTime = time;  
 
@@ -303,6 +316,14 @@ classdef position_controller_fw_MPC_new < pid_controller
             lateral = q_bar * obj.WingSurfaceArea * c_y;
             lift = q_bar * obj.WingSurfaceArea * 0.35;
 
+
+            air_speed_norm = norm(V_air);
+            coeff = aero_blending(obj, air_speed_norm);
+            
+            drag = coeff * drag;
+            lateral = coeff * lateral;
+            lift = coeff * lift;
+
             force = R_WB * [-drag; lateral;-lift];
             force = [0;0;0];
         end
@@ -322,6 +343,25 @@ classdef position_controller_fw_MPC_new < pid_controller
             F_Inertial = R_b2i * F_tot;
             accel = F_Inertial / obj.Mass;
         end
+
+         function coeff = aero_blending(obj, air_speed_norm)
+
+            x = -10:.001:100;
+
+            dist = 2;
+            f1 = @(x) 0;
+            f2 = @(x)  0.5 * (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
+            foo = blend(f1, f2, 16, dist);
+
+            f3 = @(x) foo(x);
+            f4 = 1;
+            foo = blend(f3, f4, 18, dist);
+
+            coeff = foo(air_speed_norm);
+
+        end
+
+
     end
 end
 
@@ -371,4 +411,27 @@ elseif tilt_angle_not_bound < obj.tilt_angle_min
 else
     tilt_angle_bound = tilt_angle_not_bound;
 end
+end
+
+%% piecewise blending
+function foo = blend(f1,f2,location,distance)
+
+if nargin < 4
+    distance = 0;
+end
+if nargin < 3 || isempty(location)
+    location = 0;
+end
+validateattributes(location, {'numeric','DimVar'}, {},...
+    'blend', 'blending center location', 3);
+validateattributes(distance, {'numeric','DimVar'}, {'nonnegative'},...
+    'blend', 'blending distance', 4);
+if isnumeric(f1)
+    f1 = @(~) f1;
+end
+if isnumeric(f2)
+    f2 = @(~) f2;
+end
+blf = @(x) tanh((x-location)./distance)/2;
+foo = @(x) (1/2 - blf(x)).*f1(x) + (1/2 + blf(x)).*f2(x);
 end
