@@ -10,7 +10,7 @@ function m = vtol_custom(add_arm)
                   RotorInwardAngle = [-90, 90, 90, -90];
 
 
-% 
+
 %                RotorSidewardAngle = 0; 
 %                RotorInwardAngle = 0;
 

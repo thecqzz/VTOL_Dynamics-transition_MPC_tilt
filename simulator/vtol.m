@@ -177,6 +177,7 @@ classdef vtol < multirotor
 
 
             force = rib * rbw * [-drag; lateral; -lift];
+    
         end
 
         

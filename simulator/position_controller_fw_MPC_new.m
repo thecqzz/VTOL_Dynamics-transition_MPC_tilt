@@ -11,10 +11,10 @@ classdef position_controller_fw_MPC_new < pid_controller
         Mass;
         
         q_ref = [5, 0.1, 0.1]';
-        Q_v = diag([100;0.01;300])
-        Q_rpy = diag([50 50 0]);
-        Q_rpy_dot = diag([5 5 0]);
-        Q_u = diag([0.0025 60 100 200 50]);
+        Q_v = diag([300;0.01;200])
+        Q_rpy = diag([50 100 0]);
+        Q_rpy_dot = diag([50 50 0]);
+        Q_u = diag([0.025 300 100 100 50]);
         Q_t = 30;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -24,8 +24,8 @@ classdef position_controller_fw_MPC_new < pid_controller
 
         acc_Max = [1; 1; 6]; % in m/s^2
         
-        U0 = zeros(15,5);
-        X0 = zeros(16,13); %, get solution TRAJECTORY
+        U0 = zeros(10,5);
+        X0 = zeros(11,13); %, get solution TRAJECTORY
         flag = 1;
         mpciter = 1;
         xx = [];
@@ -56,11 +56,11 @@ classdef position_controller_fw_MPC_new < pid_controller
           
 
 
-            x_ref = [[27.7425;0;0];[0;0;0];[0;0;0];pi/2;[0;0;0]];
+            x_ref = [[10;0;0];[0;0;0];[0;0;0];0;[0;0;0]];
             dt = time - obj.LastTime;
             
             % Horizon
-            N = 15;
+            N = 10;
             
             % Velocity
             V_x = SX.sym('V_x');
@@ -125,7 +125,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 
             f = Function('f',{state,controls},{rhs});  %nonlinear mapping function f(x,u)
             U = SX.sym('U',n_controls,N);
-            P = SX.sym('P',n_states + n_states);
+            P = SX.sym('P',n_states + N*n_states);
             X = SX.sym('X',n_states,(N+1));
             
             
@@ -160,7 +160,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                                    + con' * obj.Q_u * con ; 
                 
                 obj_soft_tilt = exp(-0.332*Velocity_body(1)*st(10)+12.35*st(10)+(-0.477)*Velocity_body(1)-2.303);
-                
+
                 objective_function = objective_function +  obj_stateinput  + obj_soft_vel+obj_soft_tilt ;
                 
                 k1 = f(st, con);
@@ -219,8 +219,9 @@ classdef position_controller_fw_MPC_new < pid_controller
             x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_Tilt;Init_last_rpy_dot];
             u_trim = [0;0;0;0;0];
             
-            args.p = [x_state;x_ref];
+            args.p(1:3) = x_state;
             
+
             
             if  obj.flag == 1
                 obj.X0 = repmat(x_state,1,N+1)';
@@ -244,7 +245,8 @@ classdef position_controller_fw_MPC_new < pid_controller
     
             obj.U0 = [u(2:size(u,1),:);u(size(u,1),:)];
             x0 = reshape(full(sol.x(1:n_states*(N+1)))',n_states,N+1)'; % get solution TRAJECTORY
-           
+            disp(x0)
+            disp(u)
             disp(x_state')
 
             obj.X0 = [x_state';x0(3:end,:);x0(end,:)];
@@ -258,14 +260,13 @@ classdef position_controller_fw_MPC_new < pid_controller
             accel_des  = thrust_des ./ obj.Mass;
             
             rpy_des = rad2deg(control(3:5));
-            tilt_speed = control(2);
 
+            tilt_speed = control(2);
+            
+            obj.tiltIntegral = obj.tiltIntegral + tilt_speed*dt;
             tilt_angle = Init_Tilt + obj.tiltIntegral;
             tilt_angle = rad2deg(limit_tilt(obj,tilt_angle));
 
-            disp(rpy_des)
-            disp(thrust_des)
-            disp(rad2deg(tilt_speed))
             obj.LastTime = time;  
 
         end
@@ -303,6 +304,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             lift = q_bar * obj.WingSurfaceArea * 0.35;
 
             force = R_WB * [-drag; lateral;-lift];
+            force = [0;0;0];
         end
         
         
@@ -346,7 +348,7 @@ function Torque = CalcTorque(rpyMPC,rpy,rpy_dot,last_rpy_dot) %assuming same thr
 
 body_rate_sp = diag([2,2,0])* (rpyMPC - rpy);
 
-Torque = diag([2,2,0]) * (body_rate_sp - rpy_dot) + diag([2,2,0]) * (last_rpy_dot - rpy_dot);
+Torque = diag([2,2,0]) * (body_rate_sp - rpy_dot) + diag([2,0.5,0]) * (last_rpy_dot - rpy_dot);
 end
 
 function [x_state, u0] = shift(T, x_state, u,f)
