@@ -11,7 +11,7 @@ classdef position_controller < pid_controller
 
     methods
 
-        function [lin_accel,rpy_des] = CalculateControlCommand(obj, mult, pos_des,vel_des, yaw_des,acc_des, time)
+        function [lin_accel,rpy_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des,acc_des, time)
 
 
             % Calculates PID response using this formula:

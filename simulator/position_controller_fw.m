@@ -94,7 +94,9 @@ classdef position_controller_fw < pid_controller
             pitch_min_rad,pitch_max_rad,param_climbrate_target,param_sinkrate_target,hgt_rate_sp)
         end
         
+    end
 end
+
 
 %% Helper functions
 
