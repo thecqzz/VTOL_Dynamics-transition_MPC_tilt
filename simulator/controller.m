@@ -6,6 +6,8 @@ classdef controller < handle
         HMFController hmf_controller
 
         Max_speed_sq
+
+        mode = "transition"
     end
     
     methods
@@ -36,15 +38,102 @@ classdef controller < handle
        function [lin_accel, rpy_des, tilt] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-                 [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
-                                  
-%               tilt = 45;
-%               lin_accel = [5*sind(45), 0, -5*cosd(45)]';
-%               rpy_des = [0,5,0]';
+%                 [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+                         
+              lin_accel= [0,0,0]';
+              rpy_des = [0,0,0]';
+              tilt = 0;
+              
+%               RPY = mult.State.RPY;
+%               Rbi = GetRotationMatrix(RPY(1),RPY(2),RPY(3));
+%               hover = Rbi * physics.Gravity;
+%               lin_accel_MC = -hover;
+%               lin_accel = [-tand(current_tilt)*lin_accel_MC(3);0;lin_accel_MC(3)]; 
+
+%% begin PID decoy
+
+current_tilt = mult.Servos{1}.CurrentAngle;
+speed_norm = norm(mult.State.Velocity) ;
+RPY = mult.State.RPY;
+Rbi = GetRotationMatrix(RPY(1),RPY(2),RPY(3));
+
+hover = Rbi * physics.Gravity;
+
+lin_accel_MC = -hover;
+lin_accel_FW = [1,0,0];
+
+transition_tilt = 27;
+
+lin_accel_transition_P1 = [-tand(current_tilt)*lin_accel_MC(3);0;lin_accel_MC(3)]; 
+lin_accel_transition_P2 = [lin_accel_FW(1);0;lin_accel_FW(1)/(-tand(current_tilt))];
+
+transition_z = -200.5;
+
+P = 20;
+D = 10;
+
+tilt = 0;
 
 
-%               lin_accel = [0,0, 0]';
-%               rpy_des = [0,0,0]';
+% mode:MC (full control)
+if obj.mode == "MC"
+    tilt = 0;
+
+    position_err = transition_z - mult.State.Position(3);
+    speed_err = 0 - mult.State.Velocity(3);
+
+    lin_accel_z = position_err * P + speed_err * D;
+
+    if lin_accel_z <= -13.8066
+
+        lin_accel_z = -13.8066;
+
+    end
+
+
+    lin_accel = [0,0,lin_accel_z]';
+
+
+    if mult.State.Position(3) <= -200
+        obj.mode = "transition";
+    end
+end
+
+
+
+
+
+% mode:transition (phase1: gaining V_x) 
+if obj.mode == "transition"
+
+tilt = transition_tilt;
+
+if speed_norm <= 16
+
+lin_accel = lin_accel_transition_P1;
+
+% mode:transition (phase2: blending)
+
+elseif speed_norm >16 && speed_norm <= 23
+
+
+lin_accel = lin_accel_transition_P2*(speed_norm - 16)/(23-16) + lin_accel_transition_P1 * (23-speed_norm)/(23-16);
+
+% mode:FW (full control
+elseif speed_norm > 23
+
+    obj.mode = "FW";
+
+    tilt = 90;
+    lin_accel = lin_accel_transition_P2;
+
+
+end
+
+end
+
+
+
 
 
 
@@ -52,28 +141,27 @@ classdef controller < handle
         end
         
         
-        %%%%%%%%
 
-        function DesiredVelocities = GetDesiredVelocities(obj, mult, waypoint_des,time)
-            DesiredVelocities = obj.PositionController.SetVelDes(obj, mult, waypoint_des,time);
-        end
-
-        %%%%%%%%
-
-        function [lin_accel, rpy_des] = ControlMotionAndForce(obj, mult, force_des, pos_des, yaw_des, vel_des, acc_des, ...
-                contact_normal, vel_mat, force_constraint, dt)
-            [lin_accel, rpy_des] = obj.HMFController.ControlMotionAndForce(mult, ...
-                force_des, pos_des, yaw_des, vel_des, acc_des, contact_normal, vel_mat, force_constraint, dt);
-        end
         
         function Reset(obj)
             obj.AttitudeController.Reset();
             obj.PositionController.Reset();
         end
         
-        function SetAttitudeStrategy(obj, attitude_strategy)
-            obj.PositionController.SetAttitudeStrategy(attitude_strategy);
-            obj.HMFController.SetAttitudeStrategy(attitude_strategy);
-        end
+
     end
+end
+
+function Rot_BI = GetRotationMatrix(roll, pitch, yaw)
+
+
+    s_ph = sin(roll);
+    s_th = sin(pitch);
+    s_ps = sin(yaw);
+    c_ph = cos(roll);
+    c_th = cos(pitch);
+    c_ps = cos(yaw);
+    Rot_BI = [ c_th * c_ps                      ,       c_th * s_ps                      ,          -s_th;
+               s_ph * s_th * c_ps - c_ph * s_ps ,       s_ph * s_th * s_ps + c_ph * c_ps ,          s_ph * c_th;
+               c_ph * s_th * c_ps + s_ph * s_ps ,       c_ph * s_th * s_ps - s_ph * c_ps ,          c_ph * c_th  ];
 end
