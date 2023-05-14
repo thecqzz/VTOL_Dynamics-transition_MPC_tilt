@@ -169,19 +169,19 @@ classdef control_allocation_vtol < handle
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
 
 
-
-                maximum_rotor = max(actuator_sp(1:4));
-
-                for i = 1:4
-                if maximum_rotor > 1
-                    actuator_sp(i) = actuator_sp(i) / maximum_rotor;
-                    disp("a number for rotor is higher than the maximum")
-                end
-                end
-
-                for i = 5:8
-                actuator_sp(i) = min(1, actuator_sp(i))      ;
-                end
+% 
+%                 maximum_rotor = max(actuator_sp(1:4));
+% 
+%                 for i = 1:4
+%                 if maximum_rotor > 1
+%                     actuator_sp(i) = actuator_sp(i) / maximum_rotor;
+%                     disp("a number for rotor is higher than the maximum")
+%                 end
+%                 end
+% 
+%                 for i = 5:8
+%                 actuator_sp(i) = min(1, actuator_sp(i))      ;
+%                 end
                                
                 rotor_speeds_squared = actuator_sp(1:4);
                 

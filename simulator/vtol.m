@@ -133,7 +133,7 @@ classdef vtol < multirotor
 
                         C_Z0 = 0.35;
                         C_Za = 0.11;
-                        C_D0 = 0.01;
+                        C_D0 = 0.03;
                         C_Da = 0.2;
             
                         c_z = C_Z0 + C_Za * alpha;

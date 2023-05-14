@@ -14,7 +14,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         Q_v = diag([10;10;20])
         Q_rpy = diag([20 20 20]);
         Q_rpy_dot = diag([10 10 10]);
-        Q_u = diag([0.0025 1 200 50 100]);
+        Q_u = diag([0.0025 1 200 0 100]);
         Q_t = 40;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -31,7 +31,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         xx = [];
         tiltIntegral = 0
         tilt_angle_max = 1.92
-        tilt_angle_min = 0
+        tilt_angle_min = -0.17
 
 
         % steady fw speed  =  27.7425;
@@ -209,12 +209,12 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(7:n_states:n_states*(N+1),1) = -pi; args.ubx(7:n_states:n_states*(N+1),1) = pi; %rpy_dot in radian
             args.lbx(8:n_states:n_states*(N+1),1) = -pi; args.ubx(6:n_states:n_states*(N+1),1) = pi;
             args.lbx(9:n_states:n_states*(N+1),1) = -pi; args.ubx(9:n_states:n_states*(N+1),1) = pi;
-            args.lbx(10:n_states:n_states*(N+1),1) = 0; args.ubx(10:n_states:n_states*(N+1),1) = 1.92; % tilt in degree
+            args.lbx(10:n_states:n_states*(N+1),1) = -0.122; args.ubx(10:n_states:n_states*(N+1),1) = 1.92; % tilt in degree
             args.lbx(11:n_states:n_states*(N+1),1) = -pi; args.ubx(11:n_states:n_states*(N+1),1) = pi;
             args.lbx(12:n_states:n_states*(N+1),1) = -pi; args.ubx(12:n_states:n_states*(N+1),1) = pi;
             args.lbx(13:n_states:n_states*(N+1),1) = -pi; args.ubx(13:n_states:n_states*(N+1),1) = pi; 
 
-            args.lbx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = -0.23; args.ubx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 125; %thrust in Newton calculated from max pitch angle and weight
+            args.lbx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = -0.17; args.ubx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 125; %thrust in Newton calculated from max pitch angle and weight
 %             if Init_Vel(1)<6
 %                 args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = 0; %rpy_MPC in degree
 %             else
