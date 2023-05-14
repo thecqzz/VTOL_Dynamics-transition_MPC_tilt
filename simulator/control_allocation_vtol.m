@@ -175,7 +175,7 @@ classdef control_allocation_vtol < handle
                 for i = 1:4
                 if maximum_rotor > 1
                     actuator_sp(i) = actuator_sp(i) / maximum_rotor;
-                    disp("a number for rotor is higher than the maximum")
+                    %disp("a number for rotor is higher than the maximum")
                 end
                 end
 

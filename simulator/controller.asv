@@ -69,7 +69,7 @@ classdef controller < handle
 
 
             
-            vel_des = [27.7425, 0, -1]';
+            vel_des = [27.7425, 0, 0]';
             acceleration_des = [0,0,0]';
 
             velocity_err_x = vel_des(1) - mult.State.Velocity(1);
@@ -80,21 +80,18 @@ classdef controller < handle
             lin_accel_x = velocity_err_x * P + obj.ErrorIntegral_x * I + acceleration_err_x * D;
 
             if lin_accel_x <= 0
-                lin_accel_x = 1e-10;
+                lin_accel_x = 10e-10;
             end
 
-            PP = 1.5;
-            II = 0;
-            DD = 0.3;           
 
-            velocity_err_z = vel_des(3) - mult.State.Velocity(3);
-            obj.ErrorIntegral_z = obj.ErrorIntegral_z + velocity_err_z * dt;
-            acceleration_err_z = acceleration_des(3) - current_acceleration(3);
-            lin_accel_z = velocity_err_z * PP + obj.ErrorIntegral_z * II + acceleration_err_z * DD;
+            
 
-            lin_accel_z = -lin_accel_z;
+%             velocity_err_z = vel_des(3) - mult.State.Velocity(3);
+%             obj.ErrorIntegral_z = obj.ErrorIntegral_z + velocity_err_z * dt;
+%             acceleration_err_z = acceleration_des(3) - current_acceleration(3);
+%             lin_accel_z = velocity_err_z * P + obj.ErrorIntegral_z * I + acceleration_err_z * D;
 % 
-%             lin_accel_z = 0;
+             lin_accel_z = 0;
 % 
              lin_accel_body_x = (lin_accel_x^2 + lin_accel_z^2)^0.5;
 
@@ -104,22 +101,14 @@ classdef controller < handle
 % 
 %             end
 
-            lin_accel = [lin_accel_body_x, 0, 0 ]';
+disp(lin_accel_x)
+
+
+            lin_accel = [lin_accel_x, 0, 0 ]';
 
             pitch_angle = atand(lin_accel_z/lin_accel_x);
 
-            if pitch_angle >= 8
-                pitch_angle = 8;
-
-            elseif pitch_angle <= -8
-                pitch_angle = -8;
-
-            end
-            
-
             rpy_des = [0,pitch_angle,0]';
-
-            
 
 
          
