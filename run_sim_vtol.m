@@ -38,7 +38,9 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % pos_thresh = 20;
 % rpy_thresh = 5; 
 % force_thresh = 0;
-% sim.SimulateTrajectory(traj, pos_thresh, rpy_thresh, force_thresh);
+% sim
+% 
+% .SimulateTrajectory(traj, pos_thresh, rpy_thresh, force_thresh);
 
 % Or simulate attitude response
 % sim.SetTotalTime(10);
@@ -46,7 +48,7 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
 % Or simulate position response
-sim.SetTotalTime(20);
+sim.SetTotalTime(40);
 figure;
 sim.SimulatePositionResponse([600; 0; -200], 0, true);
 
