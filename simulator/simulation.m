@@ -160,19 +160,35 @@ classdef simulation < handle
             angleerr(1) = servoangles(1) - tilt1_des;
             angleerr(2) = servoangles(2) - tilt2_des;
 
-            if abs(angleerr(1)) <= max_change(1)
+%             if abs(angleerr(1)) <= max_change(1)
+%                 servoangles(1) = servoangles(1);
+%             elseif angleerr(1) > max_change(1)
+%                 servoangles(1) = servoangles(1) - max_change(1);
+%             elseif angleerr(1) < -max_change(1)
+%                 servoangles(1) = servoangles(1) + max_change(1);
+%             end
+% 
+%             if abs(angleerr(2)) <= max_change(2)
+%                 servoangles(2) = servoangles(2);
+%             elseif angleerr(2) > max_change(2)
+%                 servoangles(2) = servoangles(2) - max_change(2);
+%             elseif angleerr(2) < -max_change(2)
+%                 servoangles(2) = servoangles(2) + max_change(2);
+%             end
+            
+            if abs(angleerr(1)) <= 1e-3
                 servoangles(1) = servoangles(1);
-            elseif angleerr(1) > max_change(1)
+            elseif angleerr(1) > 1e-3
                 servoangles(1) = servoangles(1) - max_change(1);
-            elseif angleerr(1) < -max_change(1)
+            elseif angleerr(1) < -1e-3
                 servoangles(1) = servoangles(1) + max_change(1);
             end
 
-            if abs(angleerr(2)) <= max_change(2)
+            if abs(angleerr(2)) <= 1e-3
                 servoangles(2) = servoangles(2);
-            elseif angleerr(2) > max_change(2)
+            elseif angleerr(2) > 1e-3
                 servoangles(2) = servoangles(2) - max_change(2);
-            elseif angleerr(2) < -max_change(2)
+            elseif angleerr(2) < -1e-3
                 servoangles(2) = servoangles(2) + max_change(2);
             end
 

@@ -8,6 +8,9 @@ classdef controller < handle
         Max_speed_sq
 
         mode = "MC_location_initial"
+%         mode = "FW"
+        ErrorIntegral_x_FW = 0
+        ErrorIntegral_z_FW = 0
     end
 
     methods
@@ -189,10 +192,10 @@ classdef controller < handle
             if obj.mode == "FW_tilt"
 
                 rpy_des = [0,0,0]';
-                tilt = 90.5;
+                tilt = 90;
                 lin_accel = lin_accel_transition_P2;
 
-                if current_tilt >= 89.9
+                if current_tilt >= 89.5
 
                     obj.mode = "FW";
 
@@ -201,6 +204,7 @@ classdef controller < handle
 
             if obj.mode == "FW"
 
+                tilt = 90;
 
                 P_FW = 1.5;
                 I_FW = 0.1;
@@ -208,7 +212,7 @@ classdef controller < handle
 
                 %vel_des = [27.7425, 0, 0]';
 
-                vel_des_FW = [27.7425, 0, -1]';
+                vel_des_FW = [27.7425, 0, 0]';
                 acceleration_des_FW = [0,0,0]';
 
                 velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
@@ -222,9 +226,9 @@ classdef controller < handle
                     lin_accel_x_FW = 1e-10;
                 end
 
-                PP_FW = 1.5;
-                II_FW = 0.001;
-                DD_FW = 0.3;
+                PP_FW = 0.01;
+                II_FW = 0.0001;
+                DD_FW = 0.03;
 
                 velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
                 obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
@@ -259,9 +263,11 @@ classdef controller < handle
                 rpy_des = [0,pitch_angle_FW,0]';
 
             end
-           disp(tilt)
-           disp(current_tilt)
          disp(obj.mode)
+         disp(current_velocity)
+%          lin_accel = [0,0,0]';
+%          rpy_des = [0,0,0]';
+%          tilt = 90;
 
         end
 
