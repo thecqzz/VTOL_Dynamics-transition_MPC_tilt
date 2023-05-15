@@ -61,7 +61,7 @@ classdef controller < handle
 
             tilt = 90;
 
-            P_FW = 1.5;
+            P_FW = 2;
             I_FW = 0.1;
             D_FW = 0.3;
 
@@ -106,18 +106,18 @@ classdef controller < handle
 
             lin_accel = [lin_accel_body_x_FW, 0, 0 ]';
 
-            pitch_angle = atand(lin_accel_z_FW/lin_accel_x_FW);
+            pitch_angle_FW = atand(lin_accel_z_FW/lin_accel_x_FW);
 
             if pitch_angle_FW >= 8
-                pitch_angle = 8;
+                pitch_angle_FW = 8;
 
-            elseif pitch_angle <= -8
-                pitch_angle = -8;
+            elseif pitch_angle_FW <= -8
+                pitch_angle_FW = -8;
 
             end
             
 
-            rpy_des = [0,pitch_angle,0]';
+            rpy_des = [0,pitch_angle_FW,0]';
 
             
 

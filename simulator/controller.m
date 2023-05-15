@@ -61,9 +61,9 @@ classdef controller < handle
 
             tilt = 90;
 
-            P_FW = 1.5;
+            P_FW = 3;
             I_FW = 0.1;
-            D_FW = 0.3;
+            D_FW = 0.5;
 
             %vel_des = [27.7425, 0, 0]';
 
@@ -83,9 +83,13 @@ classdef controller < handle
                 lin_accel_x_FW = 1e-10;
             end
 
+%             PP_FW = 0.5;
+%             II_FW = 0.0005;
+%             DD_FW = 0.15;   
+
             PP_FW = 1.5;
             II_FW = 0.001;
-            DD_FW = 0.3;           
+            DD_FW = 0.3;   
 
             velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
             obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
@@ -118,6 +122,10 @@ classdef controller < handle
             
 
             rpy_des = [0,pitch_angle_FW,0]';
+            
+            disp(current_velocity)
+            disp(lin_accel_x_FW)
+            disp(lin_accel_z_FW)
 
             
 
