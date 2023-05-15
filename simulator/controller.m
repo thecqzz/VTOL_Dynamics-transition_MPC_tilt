@@ -49,13 +49,14 @@ classdef controller < handle
 
             current_tilt = mult.Servos{1}.CurrentAngle;
             current_velocity  = mult.State.Velocity;
+            current_acceleration = mult.State.Acceleration;
             speed_norm = norm(mult.State.Velocity);
             transition_tilt = 27;
-            
+
             RPY = mult.State.RPY;
             Rbi = GetRotationMatrix(RPY(1),RPY(2),RPY(3));
             hover = Rbi * physics.Gravity;
-            
+
             lin_accel_MC = -hover;
             lin_accel_FW = [1,0,0];
 
@@ -72,7 +73,7 @@ classdef controller < handle
                 D = 10;
                 %%%%%%%%%%%%%%%%%%%%%%%
                 transition_z = -200.5;
-                %%%%%%%%%%%%%%%%%%%%%%%              
+                %%%%%%%%%%%%%%%%%%%%%%%
                 position_err = transition_z - mult.State.Position(3);
                 speed_err = 0 - mult.State.Velocity(3);
 
@@ -84,7 +85,7 @@ classdef controller < handle
 
                 end
 
-                lin_accel = [0,0,lin_accel_z]'; 
+                lin_accel = [0,0,lin_accel_z]';
                 rpy_des = [0,0,0]';
 
                 if mult.State.Position(3) <= -200
@@ -95,59 +96,59 @@ classdef controller < handle
 
             if obj.mode == "MC_track_vel_des"
 
-            tilt = 0;
-             
-            current_acceleration = mult.State.Acceleration;
-            
-            vel_des = [10.1,0,0]';
-            acceleration_des = [0,0,0]';
+                tilt = 0;
 
-            P = 0.6;
-            D = 0.1;
+                current_acceleration = mult.State.Acceleration;
 
-            velocity_err_x = vel_des(1) - mult.State.Velocity(1);
-            acceleration_err_x = acceleration_des(1) - current_acceleration(1);
-            lin_accel_x = velocity_err_x * P + acceleration_err_x * D;
+                vel_des = [10.1,0,0]';
+                acceleration_des = [0,0,0]';
 
-            velocity_err_z = vel_des(3) - mult.State.Velocity(3);
-            acceleration_err_z = acceleration_des(3) - current_acceleration(3);
-            lin_accel_z = velocity_err_z * P + acceleration_err_z * D - physics.Gravity(3);
+                P = 0.6;
+                D = 0.1;
 
-            lin_accel_body_z = -(lin_accel_x^2 + lin_accel_z^2)^0.5;
+                velocity_err_x = vel_des(1) - mult.State.Velocity(1);
+                acceleration_err_x = acceleration_des(1) - current_acceleration(1);
+                lin_accel_x = velocity_err_x * P + acceleration_err_x * D;
 
-            if lin_accel_body_z <= -12.8066
+                velocity_err_z = vel_des(3) - mult.State.Velocity(3);
+                acceleration_err_z = acceleration_des(3) - current_acceleration(3);
+                lin_accel_z = velocity_err_z * P + acceleration_err_z * D - physics.Gravity(3);
 
-               lin_accel_body_z = -12.8066;
+                lin_accel_body_z = -(lin_accel_x^2 + lin_accel_z^2)^0.5;
 
-            end
-            
+                if lin_accel_body_z <= -12.8066
 
-            lin_accel = [0,0,lin_accel_body_z]';
+                    lin_accel_body_z = -12.8066;
 
-            pitch_angle = atand(lin_accel_x/lin_accel_z);
-
-            rpy_des = [0,pitch_angle,0]';
+                end
 
 
-            if norm(current_velocity - vel_des) <= 0.1
+                lin_accel = [0,0,lin_accel_body_z]';
 
-                obj.mode = "reset_RPY";
-            end
+                pitch_angle = atand(lin_accel_x/lin_accel_z);
+
+                rpy_des = [0,pitch_angle,0]';
+
+
+                if norm(current_velocity - vel_des) <= 0.1
+
+                    obj.mode = "reset_RPY";
+                end
 
 
 
             end
 
             if obj.mode == "reset_RPY"
-                
+
                 tilt = 0;
                 rpy_des = [0,0,0]';
                 lin_accel = [0,0,-physics.Gravity(3)]';
 
-            if norm(RPY - rpy_des) <= 0.001
+                if norm(RPY - rpy_des) <= 0.001
 
-                obj.mode = "transition_Phase1";
-            end
+                    obj.mode = "transition_Phase1";
+                end
             end
 
             if obj.mode == "transition_Phase1"
@@ -165,17 +166,17 @@ classdef controller < handle
             end
 
             if obj.mode == "transition_Phase2"
-                
+
                 rpy_des = [0,0,0]';
                 tilt = transition_tilt;
 
                 ratio = (speed_norm - blending_speed)/(transition_speed-blending_speed);
 
                 lin_accel = lin_accel_transition_P2 * ratio + lin_accel_transition_P1 * (1 - ratio);
-                
+
                 disp("speed_norm")
                 disp(speed_norm)
-                diap("ratio")
+                disp("ratio")
                 disp(ratio)
 
                 if speed_norm >= transition_speed
@@ -188,23 +189,79 @@ classdef controller < handle
             if obj.mode == "FW_tilt"
 
                 rpy_des = [0,0,0]';
-                tilt = 90;
+                tilt = 90.5;
                 lin_accel = lin_accel_transition_P2;
-                
-                if current_tilt = 90
 
-                    obj.mode = "FW"
+                if current_tilt >= 89.9
+
+                    obj.mode = "FW";
 
                 end
             end
 
-            if obj.mode = "FW"
-                
+            if obj.mode == "FW"
 
 
-            disp(obj.mode)
+                P_FW = 1.5;
+                I_FW = 0.1;
+                D_FW = 0.3;
+
+                %vel_des = [27.7425, 0, 0]';
+
+                vel_des_FW = [27.7425, 0, -1]';
+                acceleration_des_FW = [0,0,0]';
+
+                velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
+
+                obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
+
+                acceleration_err_x_FW = acceleration_des_FW(1) - current_acceleration(1);
+                lin_accel_x_FW = velocity_err_x_FW * P_FW + obj.ErrorIntegral_x_FW * I_FW + acceleration_err_x_FW * D_FW;
+
+                if lin_accel_x_FW <= 0
+                    lin_accel_x_FW = 1e-10;
+                end
+
+                PP_FW = 1.5;
+                II_FW = 0.001;
+                DD_FW = 0.3;
+
+                velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
+                obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
+                acceleration_err_z_FW = acceleration_des_FW(3) - current_acceleration(3);
+                lin_accel_z_FW = velocity_err_z_FW * PP_FW + obj.ErrorIntegral_z_FW * II_FW + acceleration_err_z_FW * DD_FW;
+
+                lin_accel_z_FW = -lin_accel_z_FW;
+                %
+                %             lin_accel_z = 0;
+                %
+                lin_accel_body_x_FW = (lin_accel_x_FW^2 + lin_accel_z_FW^2)^0.5;
+
+                %             if lin_accel_body_x >= 12.8066
+                %
+                %                lin_accel_body_x = 12.8066;
+                %
+                %             end
+
+                lin_accel = [lin_accel_body_x_FW, 0, 0 ]';
+
+                pitch_angle_FW = atand(lin_accel_z_FW/lin_accel_x_FW);
+
+                if pitch_angle_FW >= 8
+                    pitch_angle_FW = 8;
+
+                elseif pitch_angle_FW <= -8
+                    pitch_angle_FW = -8;
+
+                end
 
 
+                rpy_des = [0,pitch_angle_FW,0]';
+
+            end
+           disp(tilt)
+           disp(current_tilt)
+         disp(obj.mode)
 
         end
 
