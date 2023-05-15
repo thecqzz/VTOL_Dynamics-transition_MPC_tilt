@@ -27,8 +27,8 @@ classdef vtol < multirotor
         is_transition = false;
 
         % steady fw speed  =  27.7425;
-        blending_air_speed = 10;   
-        Transition_air_speed = 23; 
+        blending_air_speed = 5;   
+        Transition_air_speed = 12; 
 
     end
 
@@ -247,11 +247,11 @@ classdef vtol < multirotor
             dist = 2;
             f1 = @(x) 0;
             f2 = @(x)  0.5 * (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
-            foo = blend(f1, f2, 16, dist);
+            foo = blend(f1, f2, 6, dist);
 
             f3 = @(x) foo(x);
             f4 = 1;
-            foo = blend(f3, f4, 18, dist);
+            foo = blend(f3, f4, 12, dist);
 
             coeff = foo(air_speed_norm);
 

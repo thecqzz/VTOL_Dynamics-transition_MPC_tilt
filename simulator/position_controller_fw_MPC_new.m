@@ -14,7 +14,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         Q_v = diag([10;10;20])
         Q_rpy = diag([20 20 20]);
         Q_rpy_dot = diag([10 10 10]);
-        Q_u = diag([0.0025 1 200 50 100]);
+        Q_u = diag([0.0025 30 100 50 100]);
         Q_t = 40;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -35,8 +35,8 @@ classdef position_controller_fw_MPC_new < pid_controller
 
 
         % steady fw speed  =  27.7425;
-        blending_air_speed = 10;   
-        Transition_air_speed = 20; 
+        blending_air_speed = 5;   
+        Transition_air_speed = 12; 
 
 
     end
@@ -166,7 +166,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                                    +(st(7:9))' * obj.Q_rpy_dot * (st(7:9))...
                                    + con' * obj.Q_u * con ; 
                 
-                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+12.35*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
+                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+1.8*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
 
                 objective_function = objective_function +  obj_stateinput  + obj_soft_vel+obj_soft_tilt;
                 
@@ -371,11 +371,11 @@ classdef position_controller_fw_MPC_new < pid_controller
             dist = 2;
             f1 = @(x) 0;
             f2 = @(x)  0.5 * (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
-            foo = blend(f1, f2, 11, dist);
+            foo = blend(f1, f2, 6, dist);
 
             f3 = @(x) foo(x);
             f4 = 1;
-            foo = blend(f3, f4, 15, dist);
+            foo = blend(f3, f4, 12, dist);
 
             coeff = foo(air_speed_norm);
 
