@@ -198,8 +198,7 @@ classdef controller < handle
                 end
             end
 
-            if obj.mode = "FW"
-                
+            if obj.m
 
 
             disp(obj.mode)
