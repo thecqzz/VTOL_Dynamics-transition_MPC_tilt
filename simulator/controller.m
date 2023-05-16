@@ -7,10 +7,12 @@ classdef controller < handle
 
         Max_speed_sq
 
-       mode = "FW"
+       mode = "MC_location_initial"
 %          mode = "MC"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
+        time
+
     end
 
     methods
@@ -210,21 +212,23 @@ classdef controller < handle
                 
                 if current_acceleration(1) <= 0
 
+                    obj.time = dt;
+
                     obj.mode = "FW";
 
 
                 end
 
-            
+            disp("obj.time")
+            disp(obj.time)
 
             end
             
-            time = dt;
 
             if obj.mode == "FW"
-                            
-            dt = dt - time;
 
+            dt = dt - obj.time;
+                            
             tilt = 90;
 
             P_FW = 3;
@@ -232,7 +236,9 @@ classdef controller < handle
             D_FW = 0.5;
 
             %vel_des = [27.7425, 0, 0]';
-    
+
+
+            
             vel_des_FW = [27.7425, 0, -1]';
             acceleration_des_FW = [0,0,0]';
 
@@ -287,8 +293,11 @@ classdef controller < handle
 
             rpy_des = [0,pitch_angle_FW,0]';
 
+            disp(dt)
+
+
             end
-         disp(obj.mode)
+
 %          disp(current_velocity)
 
 %          lin_accel = [0,0,0]';
