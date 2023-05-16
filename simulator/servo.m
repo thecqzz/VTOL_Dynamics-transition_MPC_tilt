@@ -2,7 +2,7 @@ classdef servo < handle
     properties
         % MaxRate = 50; % Maximum angular rate (deg/s)
         
-        MaxRate = 35; % Maximum angular rate (deg/s)
+        MaxRate = 45; % Maximum angular rate (deg/s)
     end
 
     properties %(SetAccess=public, GetAccess=public)

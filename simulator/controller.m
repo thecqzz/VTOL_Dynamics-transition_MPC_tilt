@@ -61,13 +61,14 @@ classdef controller < handle
             hover = Rbi * physics.Gravity;
 
             lin_accel_MC = -hover;
-            lin_accel_FW = [1,0,0];
+            lin_accel_FW = [2,0,0];
 
             lin_accel_transition_P1 = [-tand(current_tilt)*lin_accel_MC(3);0;lin_accel_MC(3)];
             lin_accel_transition_P2 = [lin_accel_FW(1);0;lin_accel_FW(1)/(-tand(current_tilt))];
 
-            blending_speed = 16;
+            blending_speed = 13.5;
             transition_speed = 23;
+%             transition_speed = 27.7425;
 
             if obj.mode == "MC_location_initial"
                 tilt = 0;
@@ -177,10 +178,10 @@ classdef controller < handle
 
                 lin_accel = lin_accel_transition_P2 * ratio + lin_accel_transition_P1 * (1 - ratio);
 
-                disp("speed_norm")
-                disp(speed_norm)
-                disp("ratio")
-                disp(ratio)
+% %                 disp("speed_norm")
+% %                 disp(speed_norm)
+% %                 disp("ratio")
+% %                 disp(ratio)
 
                 if speed_norm >= transition_speed
 
@@ -196,13 +197,34 @@ classdef controller < handle
                 lin_accel = lin_accel_transition_P2;
 
                 if current_tilt >= 89.5
-
-                    obj.mode = "FW";
-
+                    
+                    obj.mode = "idel";                  
                 end
             end
 
+            if obj.mode == "idel"
+
+                rpy_des = [0,0,0]';
+                tilt = 90;
+                lin_accel =[0,0,0]';
+                
+                if current_acceleration(1) <= 0
+
+                    obj.mode = "FW";
+
+
+                    disp("state state state")
+                    disp(current_acceleration)
+                    disp(current_velocity)
+                end
+               
+
+            end
+
+
+
             if obj.mode == "FW"
+                            
 
                 tilt = 90;
 
@@ -212,7 +234,7 @@ classdef controller < handle
 
                 %vel_des = [27.7425, 0, 0]';
 
-                vel_des_FW = [27.7425, 0, 0]';
+                vel_des_FW = [27.7425, 0, -1]';
                 acceleration_des_FW = [0,0,0]';
 
                 velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
@@ -226,9 +248,9 @@ classdef controller < handle
                     lin_accel_x_FW = 1e-10;
                 end
 
-                PP_FW = 0.01;
-                II_FW = 0.0001;
-                DD_FW = 0.03;
+                PP_FW = 1;
+                II_FW = 0.001;
+                DD_FW = 0.1;
 
                 velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
                 obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
@@ -263,8 +285,9 @@ classdef controller < handle
                 rpy_des = [0,pitch_angle_FW,0]';
 
             end
-         disp(obj.mode)
-         disp(current_velocity)
+%          disp(obj.mode)
+%          disp(current_velocity)
+
 %          lin_accel = [0,0,0]';
 %          rpy_des = [0,0,0]';
 %          tilt = 90;
