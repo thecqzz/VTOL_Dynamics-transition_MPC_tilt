@@ -8,7 +8,7 @@ classdef controller < handle
         Max_speed_sq
 
 %        mode = "MC_location_initial"
-         mode = "reset_RPY"
+         mode = "FW"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
     end
@@ -229,7 +229,7 @@ classdef controller < handle
                 tilt = 90;
 
                 P_FW = 1.5;
-                I_FW = 2000;
+                I_FW = 0.1;
                 D_FW = 0.3;
 
                 %vel_des = [27.7425, 0, 0]';
