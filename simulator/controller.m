@@ -7,8 +7,8 @@ classdef controller < handle
 
         Max_speed_sq
 
-%        mode = "MC_location_initial"
-         mode = "FW"
+       mode = "FW"
+%          mode = "MC"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
     end
@@ -213,98 +213,82 @@ classdef controller < handle
                     obj.mode = "FW";
 
 
-                    disp("state state state")
-                    disp(current_acceleration)
-                    disp(current_velocity)
                 end
-               
+
+            
 
             end
-
+            
+            time = dt;
 
             if obj.mode == "FW"
                             
+            dt = dt - time;
 
-                tilt = 90;
+            tilt = 90;
 
-                P_FW = 1.5;
-                I_FW = 0.1;
-                D_FW = 0.3;
+            P_FW = 3;
+            I_FW = 0.1;
+            D_FW = 0.5;
 
-                %vel_des = [27.7425, 0, 0]';
+            %vel_des = [27.7425, 0, 0]';
+    
+            vel_des_FW = [27.7425, 0, -1]';
+            acceleration_des_FW = [0,0,0]';
 
-                vel_des_FW = [27.7425, 0, -1]';
-                acceleration_des_FW = [0,0,0]';
+            velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
 
-                velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
+            obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
 
-                disp("velocity_err_x_FW")
-                disp(velocity_err_x_FW)
+            acceleration_err_x_FW = acceleration_des_FW(1) - current_acceleration(1);
+            lin_accel_x_FW = velocity_err_x_FW * P_FW + obj.ErrorIntegral_x_FW * I_FW + acceleration_err_x_FW * D_FW;
 
+            if lin_accel_x_FW <= 0
+                lin_accel_x_FW = 1e-10;
+            end
 
-                obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
+%             PP_FW = 0.5;
+%             II_FW = 0.0005;
+%             DD_FW = 0.15;   
 
+            PP_FW = 1.5;
+            II_FW = 0.001;
+            DD_FW = 0.3;   
 
-                disp("velocity_err_x_FW")
-                disp(velocity_err_x_FW)
+            velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
+            obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
+            acceleration_err_z_FW = acceleration_des_FW(3) - current_acceleration(3);
+            lin_accel_z_FW = velocity_err_z_FW * PP_FW + obj.ErrorIntegral_z_FW * II_FW + acceleration_err_z_FW * DD_FW;
 
-                disp("DT")
-                disp(dt)
+            lin_accel_z_FW = -lin_accel_z_FW;
+% 
+%             lin_accel_z = 0;
+% 
+             lin_accel_body_x_FW = (lin_accel_x_FW^2 + lin_accel_z_FW^2)^0.5;
 
-                disp("obj.ErrorIntegral_x_FW")
-                disp(obj.ErrorIntegral_x_FW)
+%             if lin_accel_body_x >= 12.8066
+% 
+%                lin_accel_body_x = 12.8066;
+% 
+%             end
 
-                acceleration_err_x_FW = acceleration_des_FW(1) - current_acceleration(1);
+            lin_accel = [lin_accel_body_x_FW, 0, 0 ]';
 
-                disp("acceleration_err_x_FW")
-                disp(acceleration_err_x_FW)
+            pitch_angle_FW = atand(lin_accel_z_FW/lin_accel_x_FW);
 
-                lin_accel_x_FW = velocity_err_x_FW * P_FW + obj.ErrorIntegral_x_FW * I_FW + acceleration_err_x_FW * D_FW;
+            if pitch_angle_FW >= 8
+                pitch_angle_FW = 8;
 
-                if lin_accel_x_FW <= 0
-                    lin_accel_x_FW = 1e-10;
-                end
-
-                PP_FW = 1;
-                II_FW = 0.001;
-                DD_FW = 0.1;
-
-                velocity_err_z_FW = vel_des_FW(3) - mult.State.Velocity(3);
-                obj.ErrorIntegral_z_FW = obj.ErrorIntegral_z_FW + velocity_err_z_FW * dt;
-                acceleration_err_z_FW = acceleration_des_FW(3) - current_acceleration(3);
-                lin_accel_z_FW = velocity_err_z_FW * PP_FW + obj.ErrorIntegral_z_FW * II_FW + acceleration_err_z_FW * DD_FW;
-
-                lin_accel_z_FW = -lin_accel_z_FW;
-
-                lin_accel_z_FW = 0;
-                %
-                %             lin_accel_z = 0;
-                %
-                lin_accel_body_x_FW = (lin_accel_x_FW^2 + lin_accel_z_FW^2)^0.5;
-
-                %             if lin_accel_body_x >= 12.8066
-                %
-                %                lin_accel_body_x = 12.8066;
-                %
-                %             end
-
-                lin_accel = [lin_accel_body_x_FW, 0, 0 ]';
-
-                pitch_angle_FW = atand(lin_accel_z_FW/lin_accel_x_FW);
-
-                if pitch_angle_FW >= 8
-                    pitch_angle_FW = 8;
-
-                elseif pitch_angle_FW <= -8
-                    pitch_angle_FW = -8;
-
-                end
-
-
-                rpy_des = [0,pitch_angle_FW,0]';
+            elseif pitch_angle_FW <= -8
+                pitch_angle_FW = -8;
 
             end
-%          disp(obj.mode)
+            
+
+            rpy_des = [0,pitch_angle_FW,0]';
+
+            end
+         disp(obj.mode)
 %          disp(current_velocity)
 
 %          lin_accel = [0,0,0]';
