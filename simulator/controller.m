@@ -221,7 +221,6 @@ classdef controller < handle
 
             end
 
-            obj.ErrorIntegral_x_FW = 0;
 
             if obj.mode == "FW"
                             
