@@ -242,8 +242,6 @@ classdef controller < handle
                 disp("velocity_err_x_FW")
                 disp(velocity_err_x_FW)
 
-                 dt = 0.0143;
-
 
                 obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
 
