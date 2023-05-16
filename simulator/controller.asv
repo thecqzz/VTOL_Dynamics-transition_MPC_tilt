@@ -7,8 +7,8 @@ classdef controller < handle
 
         Max_speed_sq
 
-        mode = "MC_location_initial"
-%         mode = "FW"
+%        mode = "MC_location_initial"
+         mode = "reset_RPY"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
     end
@@ -178,10 +178,10 @@ classdef controller < handle
 
                 lin_accel = lin_accel_transition_P2 * ratio + lin_accel_transition_P1 * (1 - ratio);
 
-                disp("speed_norm")
-                disp(speed_norm)
-                disp("ratio")
-                disp(ratio)
+% %                 disp("speed_norm")
+% %                 disp(speed_norm)
+% %                 disp("ratio")
+% %                 disp(ratio)
 
                 if speed_norm >= transition_speed
 
@@ -202,16 +202,22 @@ classdef controller < handle
                 end
             end
 
-            if obj.mode == 'idel'
+            if obj.mode == "idel"
 
                 rpy_des = [0,0,0]';
                 tilt = 90;
                 lin_accel =[0,0,0]';
                 
-                if current_acceleration <= 0
+                if current_acceleration(1) <= 0
 
-                    obj
+                    obj.mode = "FW";
 
+
+                    disp("state state state")
+                    disp(current_acceleration)
+                    disp(current_velocity)
+                end
+               
 
             end
 
@@ -233,9 +239,18 @@ classdef controller < handle
 
                 velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
 
+                disp("velocity_err_x_FW")
+                disp(velocity_err_x_FW)
+
+
                 obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
 
+                disp("obj.ErrorIntegral_x_FW")
+                disp(obj.ErrorIntegral_x_FW)
+
                 acceleration_err_x_FW = acceleration_des_FW(1) - current_acceleration(1);
+
+                disp()
                 lin_accel_x_FW = velocity_err_x_FW * P_FW + obj.ErrorIntegral_x_FW * I_FW + acceleration_err_x_FW * D_FW;
 
                 if lin_accel_x_FW <= 0
@@ -252,6 +267,8 @@ classdef controller < handle
                 lin_accel_z_FW = velocity_err_z_FW * PP_FW + obj.ErrorIntegral_z_FW * II_FW + acceleration_err_z_FW * DD_FW;
 
                 lin_accel_z_FW = -lin_accel_z_FW;
+
+                lin_accel_z_FW = 0;
                 %
                 %             lin_accel_z = 0;
                 %
@@ -279,8 +296,9 @@ classdef controller < handle
                 rpy_des = [0,pitch_angle_FW,0]';
 
             end
-         disp(obj.mode)
-         disp(current_velocity)
+%          disp(obj.mode)
+%          disp(current_velocity)
+
 %          lin_accel = [0,0,0]';
 %          rpy_des = [0,0,0]';
 %          tilt = 90;

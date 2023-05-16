@@ -7,8 +7,8 @@ classdef controller < handle
 
         Max_speed_sq
 
-        mode = "MC_location_initial"
-%         mode = "FW"
+%        mode = "MC_location_initial"
+         mode = "reset_RPY"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
     end
@@ -221,7 +221,7 @@ classdef controller < handle
 
             end
 
-
+            obj.ErrorIntegral_x_FW = 0;
 
             if obj.mode == "FW"
                             
@@ -229,7 +229,7 @@ classdef controller < handle
                 tilt = 90;
 
                 P_FW = 1.5;
-                I_FW = 0.1;
+                I_FW = 2000;
                 D_FW = 0.3;
 
                 %vel_des = [27.7425, 0, 0]';
@@ -239,9 +239,29 @@ classdef controller < handle
 
                 velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
 
+                disp("velocity_err_x_FW")
+                disp(velocity_err_x_FW)
+
+                 dt = 0.0143;
+
+
                 obj.ErrorIntegral_x_FW = obj.ErrorIntegral_x_FW + velocity_err_x_FW * dt;
 
+
+                disp("velocity_err_x_FW")
+                disp(velocity_err_x_FW)
+
+                disp("DT")
+                disp(dt)
+
+                disp("obj.ErrorIntegral_x_FW")
+                disp(obj.ErrorIntegral_x_FW)
+
                 acceleration_err_x_FW = acceleration_des_FW(1) - current_acceleration(1);
+
+                disp("acceleration_err_x_FW")
+                disp(acceleration_err_x_FW)
+
                 lin_accel_x_FW = velocity_err_x_FW * P_FW + obj.ErrorIntegral_x_FW * I_FW + acceleration_err_x_FW * D_FW;
 
                 if lin_accel_x_FW <= 0
@@ -258,6 +278,8 @@ classdef controller < handle
                 lin_accel_z_FW = velocity_err_z_FW * PP_FW + obj.ErrorIntegral_z_FW * II_FW + acceleration_err_z_FW * DD_FW;
 
                 lin_accel_z_FW = -lin_accel_z_FW;
+
+                lin_accel_z_FW = 0;
                 %
                 %             lin_accel_z = 0;
                 %
