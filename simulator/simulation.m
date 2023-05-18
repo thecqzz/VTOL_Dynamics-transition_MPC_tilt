@@ -231,8 +231,12 @@ classdef simulation < handle
             last_time = time;
         end
 
-        function NextStepPositionController(obj, time)
+function NextStepPositionController(obj, time)
         % Calculate the multirotor command for a desired position and yaw
+            rbi = obj.Multirotor.GetRotationMatrix();
+            rib = rbi';
+
+          
             if ~last_commands.DesiredWaypoint.IsInitialized()
                 return;
             end
@@ -245,13 +249,18 @@ classdef simulation < handle
 %             plantinput.ServoAngles = [tilt,tilt]';
             obj.tilt_store = tilt;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            lin_accel_log_i = rib*lin_accel;
+
+
             last_commands.DesiredRPY.Set(rpy_des, time);
-            last_commands.DesiredLinearAcceleration.Set(lin_accel, time);
+            last_commands.DesiredLinearAcceleration.Set(lin_accel_log_i, time);
             last_commands.DesiredVelocity.Set(V_des,time);
             logger.Add(logger_signals.DesiredRPY, rpy_des);
-            logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel);
+            logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel_log_i);
             logger.Add(logger_signals.DesiredVelocity,V_des);
         end
+
 
       
 
