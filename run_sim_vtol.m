@@ -21,7 +21,7 @@ sim = simulation(m, c, w);
 
 %% Initial multirotor state
 
-pos = [0; 0; -190];
+pos = [0; 0; -200];
 
 % vel = [17.3005; 0; 0];
 vel = [0; 0; 0];

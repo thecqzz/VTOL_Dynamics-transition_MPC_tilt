@@ -7,7 +7,7 @@ classdef controller < handle
 
         Max_speed_sq
 
-       mode = "MC_location_initial"
+       mode = "MC_track_vel_des"
 %          mode = "MC"
         ErrorIntegral_x_FW = 0
         ErrorIntegral_z_FW = 0
@@ -239,7 +239,7 @@ classdef controller < handle
 
 
             
-            vel_des_FW = [27.7425, 0, -1]';
+            vel_des_FW = [27.7425, 0, 0]';
             acceleration_des_FW = [0,0,0]';
 
             velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
