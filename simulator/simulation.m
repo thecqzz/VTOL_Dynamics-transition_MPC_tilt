@@ -179,6 +179,7 @@ classdef simulation < handle
 
 %%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%            
             servoangles = [tilt1_des, tilt2_des];
+
 %%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
            obj.Multirotor.ChangeServoAngles(servoangles);

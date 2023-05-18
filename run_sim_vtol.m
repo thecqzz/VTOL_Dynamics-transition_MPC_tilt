@@ -48,7 +48,7 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
 % Or simulate position response
-sim.SetTotalTime(15);
+sim.SetTotalTime(20);
 figure;
 sim.SimulatePositionResponse([600; 0; -200], 0, true);
 
