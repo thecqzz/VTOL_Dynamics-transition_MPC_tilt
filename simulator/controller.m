@@ -13,6 +13,9 @@ classdef controller < handle
         ErrorIntegral_z_FW = 0
         time
 
+        V_des_linear
+
+    
     end
 
     methods
@@ -40,12 +43,11 @@ classdef controller < handle
         end
 
 
-        function [lin_accel, rpy_des, tilt] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
-
-
+        function [lin_accel, rpy_des, tilt, V_des] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
+            
             %                 [lin_accel,rpy_des, tilt] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
 
-
+            V_des = obj.V_des_linear;
 
 
             %% begin PID decoy
@@ -78,7 +80,7 @@ classdef controller < handle
                 P = 20;
                 D = 10;
                 %%%%%%%%%%%%%%%%%%%%%%%
-                transition_z = -200.5;
+                transition_z = -200;
                 %%%%%%%%%%%%%%%%%%%%%%%
                 position_err = transition_z - mult.State.Position(3);
                 speed_err = 0 - mult.State.Velocity(3);
@@ -107,6 +109,11 @@ classdef controller < handle
                 current_acceleration = mult.State.Acceleration;
 
                 vel_des = [10.1,0,0]';
+                
+
+                obj.V_des_linear = vel_des;
+                V_des = obj.V_des_linear;
+
                 acceleration_des = [0,0,0]';
 
                 P = 0.6;
@@ -153,6 +160,8 @@ classdef controller < handle
 
                 if norm(RPY - rpy_des) <= 0.001
 
+                     
+
                     obj.mode = "transition_Phase1";
                 end
             end
@@ -162,6 +171,17 @@ classdef controller < handle
                 rpy_des = [0,0,0]';
                 tilt = transition_tilt;
                 lin_accel = lin_accel_transition_P1;
+
+                obj.V_des_linear = [blending_speed,0,0]';
+
+
+                V_des = obj.V_des_linear;
+
+
+
+%                
+%                 obj.V_des_linear = (27.7425 - obj.log_vel)
+
 
                 if speed_norm >blending_speed && speed_norm <= transition_speed
 
@@ -184,6 +204,13 @@ classdef controller < handle
 % %                 disp(speed_norm)
 % %                 disp("ratio")
 % %                 disp(ratio)
+
+                obj.V_des_linear = [transition_speed,0,0]';
+
+
+                V_des = obj.V_des_linear;
+
+
 
                 if speed_norm >= transition_speed
 
@@ -219,9 +246,6 @@ classdef controller < handle
 
                 end
 
-            disp("obj.time")
-            disp(obj.time)
-
             end
             
 
@@ -240,6 +264,10 @@ classdef controller < handle
 
             
             vel_des_FW = [27.7425, 0, 0]';
+            
+            obj.V_des_linear = vel_des_FW;
+            V_des = obj.V_des_linear;
+
             acceleration_des_FW = [0,0,0]';
 
             velocity_err_x_FW = vel_des_FW(1) - mult.State.Velocity(1);
@@ -293,7 +321,6 @@ classdef controller < handle
 
             rpy_des = [0,pitch_angle_FW,0]';
 
-            disp(dt)
 
 
             end
