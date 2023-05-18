@@ -80,7 +80,7 @@ classdef controller < handle
                 P = 20;
                 D = 10;
                 %%%%%%%%%%%%%%%%%%%%%%%
-                transition_z = -200;
+                transition_z = -200.5;
                 %%%%%%%%%%%%%%%%%%%%%%%
                 position_err = transition_z - mult.State.Position(3);
                 speed_err = 0 - mult.State.Velocity(3);

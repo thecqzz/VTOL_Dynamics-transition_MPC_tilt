@@ -264,10 +264,10 @@ classdef simulation < handle
 
 
             last_commands.DesiredRPY.Set(rpy_des, time);
-            last_commands.DesiredLinearAcceleration.Set(lin_accel_log_i, time);
+            last_commands.DesiredLinearAcceleration.Set(lin_accel, time);
             last_commands.DesiredVelocity.Set(V_des,time);
             logger.Add(logger_signals.DesiredRPY, rpy_des);
-            logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel_log_i);
+            logger.Add(logger_signals.DesiredLinearAcceleration, lin_accel);
             logger.Add(logger_signals.DesiredVelocity,V_des);
         end
 
