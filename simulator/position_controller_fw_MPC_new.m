@@ -14,7 +14,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         Q_v = diag([200;100;500])
         Q_rpy = diag([100 200 100]);
         Q_rpy_dot = diag([10 10 10]);
-        Q_u = diag([0.0025 100 10 10 10]);
+        Q_u = diag([0.0025 1 100 100 100]);
         Q_t = 40;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -204,7 +204,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(2:n_states:n_states*(N+1),1) = -30; args.ubx(2:n_states:n_states*(N+1),1) = 30;
             args.lbx(3:n_states:n_states*(N+1),1) = -10; args.ubx(3:n_states:n_states*(N+1),1) = 10;
             args.lbx(4:n_states:n_states*(N+1),1) = -pi/4; args.ubx(4:n_states:n_states*(N+1),1) = pi/4; %rpy in radian
-            args.lbx(5:n_states:n_states*(N+1),1) = -pi/15;   args.ubx(5:n_states:n_states*(N+1),1) = pi/10;
+            args.lbx(5:n_states:n_states*(N+1),1) = -pi/4;   args.ubx(5:n_states:n_states*(N+1),1) = pi/10;
             args.lbx(6:n_states:n_states*(N+1),1) = -inf; args.ubx(6:n_states:n_states*(N+1),1) = inf;
             args.lbx(7:n_states:n_states*(N+1),1) = -pi; args.ubx(7:n_states:n_states*(N+1),1) = pi; %rpy_dot in radian
             args.lbx(8:n_states:n_states*(N+1),1) = -pi; args.ubx(8:n_states:n_states*(N+1),1) = pi;
@@ -224,7 +224,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = inf; %rpy_MPC in degree
 
             args.lbx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
-            args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/15; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = pi/10;
+            args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = pi/10;
             args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
 
             
