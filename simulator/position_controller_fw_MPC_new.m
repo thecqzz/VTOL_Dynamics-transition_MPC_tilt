@@ -11,10 +11,10 @@ classdef position_controller_fw_MPC_new < pid_controller
         Mass;
         
         q_ref = [5, 0.1, 0.1]';
-        Q_v = diag([200;100;500])
-        Q_rpy = diag([100 200 100]);
+        Q_v = diag([20;10;50])
+        Q_rpy = diag([10 20 10]);
         Q_rpy_dot = diag([10 10 10]);
-        Q_u = diag([0.0025 1 100 100 100]);
+        Q_u = diag([0.0025 1 10 10 10]);
         Q_t = 40;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -166,7 +166,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                                    +(st(7:9))' * obj.Q_rpy_dot * (st(7:9))...
                                    + con' * obj.Q_u * con ; 
                 
-                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+1.8*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
+                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+13.35*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
 
                 objective_function = objective_function +  obj_stateinput  + obj_soft_vel+obj_soft_tilt;
                 
@@ -238,7 +238,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 %%                 ref tracking
             for k = 1:N %new - set the reference to track
                 t_predict = time + (k-1)*dt; % predicted time instant
-                Vx_ref = 3*t_predict; Vy_ref = 0; Vz_ref = 0;
+                Vx_ref = 2*t_predict; Vy_ref = 0; Vz_ref = 0;
      
                 if Vx_ref >= 27.7425 % the trajectory end is reached
                     Vx_ref = 27.7425; Vy_ref = 0; Vz_ref = 0;
