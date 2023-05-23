@@ -166,7 +166,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                                    +(st(7:9))' * obj.Q_rpy_dot * (st(7:9))...
                                    + con' * obj.Q_u * con ; 
                 
-                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+13.35*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
+                obj_soft_tilt = exp(-0.332*Velocity_body(1)*(st(10)*180/pi)+1.8*(st(10)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
 
                 objective_function = objective_function +  obj_stateinput  + obj_soft_vel+obj_soft_tilt;
                 
