@@ -27,8 +27,8 @@ classdef vtol < multirotor
         is_transition = false;
 
         % steady fw speed  =  27.7425;
-        blending_air_speed = 4;   
-        Transition_air_speed = 15; 
+        blending_air_speed = 10;   
+        Transition_air_speed = 23; 
 
     end
 
