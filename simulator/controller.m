@@ -14,7 +14,7 @@ classdef controller < handle
         time
 
         V_des_linear
-
+        lin_accel_FW = [2.3,0,0];
     
     end
 
@@ -65,10 +65,13 @@ classdef controller < handle
             hover = Rbi * physics.Gravity;
 
             lin_accel_MC = -hover;
-            lin_accel_FW = [2,0,0];
+            lin_accel_FW_2 = [1.47,0,0];
+            lin_accel_FW_3 = [3,0,0];
 
             lin_accel_transition_P1 = [-tand(current_tilt)*lin_accel_MC(3);0;lin_accel_MC(3)];
-            lin_accel_transition_P2 = [lin_accel_FW(1);0;lin_accel_FW(1)/(-tand(current_tilt))];
+            lin_accel_transition_P2 = [obj.lin_accel_FW(1);0;obj.lin_accel_FW(1)/(-tand(current_tilt))];
+%             lin_accel_transition_P2_2 = [lin_accel_FW_2(1);0;lin_accel_FW_2(1)/(-tand(current_tilt))];
+            lin_accel_transition_P2_3 = [lin_accel_FW_3(1);0;lin_accel_FW_3(1)/(-tand(current_tilt))];
 
             blending_speed = 13.5;
             transition_speed = 23;
@@ -198,7 +201,18 @@ classdef controller < handle
 
                 ratio = (speed_norm - blending_speed)/(transition_speed-blending_speed);
 
+%                 if current_velocity(3) >= 0 
+%                     lin_accel_transition_P2 = lin_accel_transition_P2;
+%                 else
+                    
+                if current_velocity(3) < 0 
+                    obj.lin_accel_FW = lin_accel_FW_2;
+                end
+                  
+
                 lin_accel = lin_accel_transition_P2 * ratio + lin_accel_transition_P1 * (1 - ratio);
+
+                disp(lin_accel_transition_P2)
 
 % %                 disp("speed_norm")
 % %                 disp(speed_norm)
@@ -223,7 +237,9 @@ classdef controller < handle
 
                 rpy_des = [0,0,0]';
                 tilt = 90;
-                lin_accel = lin_accel_transition_P2;
+
+
+                lin_accel = lin_accel_transition_P2_3;
 
                 if current_tilt >= 89.5
                     
