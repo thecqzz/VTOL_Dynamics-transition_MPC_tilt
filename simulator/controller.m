@@ -324,6 +324,11 @@ classdef controller < handle
 
             lin_accel = [lin_accel_body_x_FW, 0, 0 ]';
 
+            if lin_accel_z_FW <= 0.0001
+                lin_accel_z_FW = 0;
+            end
+
+
             pitch_angle_FW = atand(lin_accel_z_FW/lin_accel_x_FW);
 
             if pitch_angle_FW >= 8

@@ -14,9 +14,13 @@ classdef vtol < multirotor
         C_R = 0.08810; %Rudder constant
         r_w = 0.0625; %wing center of lift wrt, center of gravity in meters
         r_t = 0.6385; %tail center of lift wrt, center of gravity in meters
-        S_A = 0.0720; %aileron surface area in m^2
-        S_E = 0.03; %elevator surface area in m^2
-        S_R = 0.008; %rudder surface area in m^2
+%         S_A = 0.0720; %aileron surface area in m^2
+%         S_E = 0.03; %elevator surface area in m^2
+%         S_R = 0.008; %rudder surface area in m^2
+        S_A = 0.0360; %aileron surface area in m^2
+        S_E = 0.1364; %elevator surface area in m^2
+        S_R = 0.004; %rudder surface area in m^2
+
         l3 = 0.5189; %front props delta x from center of mass in meters
         l4 = 0.4574; %back props delta x from center of mass in meters
         L0 = 0.3642; %tilting rotors y offset
@@ -99,49 +103,49 @@ classdef vtol < multirotor
 
             c_y = 0; % TODO: Later
 
+%             C_Z0 = 0.35;
+%             C_Za = 0.11;
+%             C_D0 = 0.03;
+%             C_Da = 0.0002;
+% 
+%             alphaR = deg2rad(alpha);
+%             alpha_plusR = deg2rad(15);
+%             alpha_minusR = deg2rad(9);
+% 
+%             k_plus = 20;
+%             k_minus = 800;
+% 
+%             c_zl = C_Z0 + C_Za .* alpha;
+%             c_dl = C_D0 + C_Da .* alpha .* alpha;
+% 
+%             c_1 = 1;
+%             c_0 = 0.025;
+% 
+%             c_zs = c_1 * sind(2*alpha);
+%             c_ds = c_0 + 2*c_1*sind(alpha).^2;
+% 
+% 
+%             if alphaR >= 0 & alphaR <= pi/2
+%                 coeff = (1 + tanh(k_plus*(alpha_plusR.^2 - alphaR^2)))/(1 + tanh(k_plus * alpha_plusR.^2));
+%             else
+%                 coeff = (1 + tanh(k_minus*(alpha_minusR.^2 - alphaR.^2)))/(1 + tanh(k_minus * alpha_minusR.^2));
+%             end
+% 
+%             c_z = coeff .* c_zl + (1 - coeff).*c_zs;
+%             c_x = coeff .* c_dl + (1 - coeff).*c_ds;
+
+
             C_Z0 = 0.35;
             C_Za = 0.11;
-            C_D0 = 0.01;
+            C_D0 = 0.03;
             C_Da = 0.0002;
 
-            alphaR = deg2rad(alpha);
-            alpha_plusR = deg2rad(15);
-            alpha_minusR = deg2rad(9);
+            c_z = C_Z0 + C_Za * alpha;
+            c_x = C_D0 + C_Da * alpha * alpha;
 
-            k_plus = 20;
-            k_minus = 800;
-
-            c_zl = C_Z0 + C_Za .* alpha;
-            c_dl = C_D0 + C_Da .* alpha .* alpha;
-
-            c_1 = 1;
-            c_0 = 0.025;
-
-            c_zs = c_1 * sind(2*alpha);
-            c_ds = c_0 + 2*c_1*sind(alpha).^2;
-
-
-            if alphaR >= 0 & alphaR <= pi/2
-                coeff = (1 + tanh(k_plus*(alpha_plusR.^2 - alphaR^2)))/(1 + tanh(k_plus * alpha_plusR.^2));
-            else
-                coeff = (1 + tanh(k_minus*(alpha_minusR.^2 - alphaR.^2)))/(1 + tanh(k_minus * alpha_minusR.^2));
-            end
-
-            c_z = coeff .* c_zl + (1 - coeff).*c_zs;
-            c_x = coeff .* c_dl + (1 - coeff).*c_ds;
-
-
-            %             C_Z0 = 0.35;
-            %             C_Za = 0.11;
-            %             C_D0 = 0.01;
-            %             C_Da = 0.2;
-            %
-            %             c_z = C_Z0 + C_Za * alpha;
-            %             c_x = C_D0 + C_Da * alpha * alpha;
-
-            drag = q_bar * obj.WingSurfaceArea * 0.03;
-            lateral = q_bar * obj.WingSurfaceArea * c_y;
-            lift = q_bar * obj.WingSurfaceArea * 0.35;
+            drag = q_bar * obj.WingSurfaceArea* c_x;
+            lateral = q_bar * obj.WingSurfaceArea* c_y;
+            lift = q_bar * obj.WingSurfaceArea* c_z;
 
             %% blending begin
 
@@ -199,9 +203,9 @@ classdef vtol < multirotor
             Va_b = rwb*Va_i;
 
             q_bar = (Va_b' * Va_b) * physics.AirDensity / 2;
-            roll_moment = q_bar * obj.S_A * obj.C_A * plantinput.AileronLeftRate;
-            pitch_moment = q_bar * obj.S_E * obj.C_E * plantinput.ElevatorRate;
-            yaw_moment = q_bar * obj.S_R * obj.C_R * plantinput.RudderRate;
+            roll_moment = q_bar * obj.S_A * obj.C_A *obj.Wingspan* plantinput.AileronLeftRate;
+            pitch_moment = q_bar * obj.S_E * obj.C_E *obj.MeanChord* plantinput.ElevatorRate;
+            yaw_moment = q_bar * obj.S_R * obj.C_R *obj.Wingspan* plantinput.RudderRate;
 
             moment = [roll_moment; pitch_moment; yaw_moment];
         end
