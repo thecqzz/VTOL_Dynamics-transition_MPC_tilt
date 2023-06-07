@@ -29,8 +29,16 @@ function m = vtol_custom(add_arm)
     m.PayloadRadius = 0.5;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%this needs to be change to 90 for FW, 0 for MC !!!!!%%%%%%
-    m.AddServo([1, 4], [0; -1; 0], 0);
-    m.AddServo([2, 3], [0; -1; 0], 0);
+%     m.AddServo([1, 4], [0; -1; 0], 0);
+%     m.AddServo([2, 3], [0; -1; 0], 0);
+
+
+    m.AddServo(1, [0; -1; 0], 0);
+    m.AddServo(2, [0; -1; 0], 0);
+    m.AddServo(3, [0; -1; 0], 0);
+    m.AddServo(4, [0; -1; 0], 0);
+
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for i = 1 : m.NumOfServos
         m.Servos{i}.MaxRate = 10; % deg/s

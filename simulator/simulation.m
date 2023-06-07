@@ -9,7 +9,7 @@ classdef simulation < handle
         I = 1;
         D = 0;
 
-        tilt_store = []
+        tilt_store = zeros(4,0)
 
     end
 
@@ -103,7 +103,7 @@ classdef simulation < handle
             plantinput.RudderRate = deflections(3);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-            plantinput.ServoAngles = [obj.tilt_store,obj.tilt_store]';
+            plantinput.ServoAngles = obj.tilt_store';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             last_commands.PlantInputCommand.Set(plantinput, time);
@@ -152,35 +152,43 @@ classdef simulation < handle
 % % %             end
 
             max_change = servo_maximum_rates * dt;
-            
-            tilt1_des = plantinput.ServoAngles(1);
-            tilt2_des = plantinput.ServoAngles(2);
-          
-            angleerr = zeros(2,1);
-            angleerr(1) = servoangles(1) - tilt1_des;
-            angleerr(2) = servoangles(2) - tilt2_des;
 
-%% new version
-% %             if abs(angleerr(1)) <= 1e-3
-% %                 servoangles(1) = servoangles(1);
-% %             elseif angleerr(1) > 1e-3
-% %                 servoangles(1) = servoangles(1) - max_change(1);
-% %             elseif angleerr(1) < -1e-3
-% %                 servoangles(1) = servoangles(1) + max_change(1);
-% %             end
-% % 
-% %             if abs(angleerr(2)) <= 1e-3
-% %                 servoangles(2) = servoangles(2);
-% %             elseif angleerr(2) > 1e-3
-% %                 servoangles(2) = servoangles(2) - max_change(2);
-% %             elseif angleerr(2) < -1e-3
-% %                 servoangles(2) = servoangles(2) + max_change(2);
-% %             end
+            tilt_des = zeros(obj.Multirotor.NumOfServos,1);
+            angleerr = zeros(obj.Multirotor.NumOfServos,1);
+ 
+for i = 1:obj.Multirotor.NumOfServos         
+            tilt_des(i) = plantinput.ServoAngles(i);
+            angleerr(i) = servoangles(i) - tilt_des(i);
+end
+
+
+for i = 1:obj.Multirotor.NumOfServos
+            if abs(angleerr(i)) <= max_change
+                servoangles(i) = tilt_des(i);
+            elseif angleerr(i) > max_change
+                servoangles(i) = servoangles(i) - max_change(i);
+            elseif angleerr(i) < -max_change
+                servoangles(i) = servoangles(i) + max_change(i);
+            end
+end
+
+
+% for i = 1:obj.Multirotor.NumOfServos
+%             if abs(angleerr(i)) <= 1e-3
+%                 servoangles(i) = servoangles(i);
+%             elseif angleerr(i) > 1e-3
+%                 servoangles(i) = servoangles(i) - max_change(i);
+%             elseif angleerr(i) < -1e-3
+%                 servoangles(i) = servoangles(i) + max_change(i);
+%             end
+% end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%            
-            servoangles = [tilt1_des, tilt2_des];
-
+%             servoangles = [tilt1_des, tilt2_des];
 %%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            servoangles = [0,0,0,0]';
 
            obj.Multirotor.ChangeServoAngles(servoangles);
 
@@ -465,8 +473,6 @@ function NextStepPositionController(obj, time)
                 new_state = obj.Multirotor.CalcNextState(wrench, ft_sensor,...
                     wind_force, plantinput, dt, true, contact_normal, air_velocity);
 
-                disp("show second wrench")
-                disp(wrench)
             end
 
             contact_status = col_ind > 0;

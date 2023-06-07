@@ -48,14 +48,15 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
 % Or simulate position response
-sim.SetTotalTime(25);
+sim.SetTotalTime(10);
 figure;
 sim.SimulatePositionResponse([600; 0; -200], 0, true);
 
 %% Draw Additional plots
 % graphics.PlotSignalsByName(2, {'laileronp', 'laileronr', 'raileronp', 'raileronr'});
 graphics.PlotSignalsByName(3, {'pos', 'vel', 'accel', 'rpy', 'euler deriv', 'ang accel', 'sat'}, false, true);
-graphics.PlotSignalsByName(2, {'servo', 'inward', 'sideward'}, false, true);
+% graphics.PlotSignalsByName(4, {'servo', 'inward', 'sideward'}, false, true);
+graphics.PlotSignalsByName(4, {'servo'}, false, true);
 %graphics.PlotSignalsByName(1, {'accel'}, false, true);
 % graphics.PlotSignalsByName(2, {'alpha', 'beta', 'airspeed'});
 % graphics.PlotSignalsByName(2, {'omega','airspeed'});

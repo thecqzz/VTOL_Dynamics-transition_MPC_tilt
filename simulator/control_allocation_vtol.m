@@ -154,9 +154,25 @@ classdef control_allocation_vtol < handle
                 actuator_trim(2) = multirotor.State.RotorSpeeds(2)/1.2194e+6;
                 actuator_trim(3) = multirotor.State.RotorSpeeds(3)/1.2194e+6;
                 actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;            
+                
+                tilt = zeros(4,1);
 
-                ratio_1 = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
-                fixed_tilt = ratio_1; 
+                tilt(1) = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
+                tilt(2) = (pi / 2) * multirotor.State.ServoAngles(2) / 90;
+                tilt(3) = (pi / 2) * multirotor.State.ServoAngles(3) / 90;
+                tilt(4) = (pi / 2) * multirotor.State.ServoAngles(4) / 90;
+
+%                 disp("1")
+%                 disp(multirotor.State.ServoAngles(1))
+% 
+%                 disp("2")
+%                 disp(multirotor.State.ServoAngles(2))
+% 
+%                 disp("3")
+%                 disp(multirotor.State.ServoAngles(3))
+% 
+%                 disp("4")
+%                 disp(multirotor.State.ServoAngles(4))
                 
 
                 actuator_trim(5) = obj.actuator_sp_5;
@@ -164,7 +180,7 @@ classdef control_allocation_vtol < handle
                 actuator_trim(7) = obj.actuator_sp_7;
                 actuator_trim(8) = obj.actuator_sp_8;
                 
-                effectiveness_matrix = calc_eff_mat(q_bar, fixed_tilt);
+                effectiveness_matrix = calc_eff_mat(q_bar, tilt);
                 control_trim = effectiveness_matrix * actuator_trim;
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
 
@@ -206,7 +222,7 @@ classdef control_allocation_vtol < handle
 end
 
 %% Other functions
-function effectiveness_matrix = calc_eff_mat(q_bar, fixed_tilt)
+function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
     
     
     %           1         2        3         4
@@ -265,12 +281,19 @@ function effectiveness_matrix = calc_eff_mat(q_bar, fixed_tilt)
 %                             -Ct * cos(trim(5)),	 						    			    -Ct * cos(trim(5)),			   							     -Ct * cos(trim(5)),											-Ct * cos(trim(5)),										     Ct * trim(1) *sin(trim(5)) + Ct * trim(2) *sin(trim(5)) + Ct * trim(3) *sin(trim(5)) + Ct * trim(4) *sin(trim(5)), 									     		    0.0,            		 	     	0.0, 		 		 	0.0]; 			
 %     
 
-    effectiveness_matrix = [-Py(1) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		     -Py(2) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		  -Py(3) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			    -Py(4) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			   		  q_bar*S_A*b*Cla,	        -q_bar*S_A*b*Cla,        0.0, 		 		    0.0;
-                             Ct*(Px(1) * cos(fixed_tilt) + Pz(1) * sin(fixed_tilt)),  			 Ct*(Px(2) * cos(fixed_tilt) + Pz(2) * sin(fixed_tilt)),		  Ct*(Px(3) * cos(fixed_tilt) + Pz(3) * sin(fixed_tilt)),			 	 Ct*(Px(4) * cos(fixed_tilt) + Pz(4) * sin(fixed_tilt)),			   		  0.0, 		 	            0.0,                    q_bar*S_E*b*Cme,	 	0.0; 			
-                            -Py(1) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		     -Py(2) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		  -Py(3) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			    -Py(4) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			   	      0.0, 		 	            0.0,                    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
-                             Ct * sin(fixed_tilt),	 										     Ct * sin(fixed_tilt),			   							      Ct * sin(fixed_tilt),											         Ct * sin(fixed_tilt),										       		      0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
+% %     effectiveness_matrix = [-Py(1) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		     -Py(2) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		  -Py(3) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			    -Py(4) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			   		  q_bar*S_A*b*Cla,	        -q_bar*S_A*b*Cla,        0.0, 		 		    0.0;
+% %                              Ct*(Px(1) * cos(fixed_tilt) + Pz(1) * sin(fixed_tilt)),  			 Ct*(Px(2) * cos(fixed_tilt) + Pz(2) * sin(fixed_tilt)),		  Ct*(Px(3) * cos(fixed_tilt) + Pz(3) * sin(fixed_tilt)),			 	 Ct*(Px(4) * cos(fixed_tilt) + Pz(4) * sin(fixed_tilt)),			   		  0.0, 		 	            0.0,                    q_bar*S_E*b*Cme,	 	0.0; 			
+% %                             -Py(1) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		     -Py(2) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		  -Py(3) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			    -Py(4) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			   	      0.0, 		 	            0.0,                    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
+% %                              Ct * sin(fixed_tilt),	 										     Ct * sin(fixed_tilt),			   							      Ct * sin(fixed_tilt),											         Ct * sin(fixed_tilt),										       		      0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
+% %                              0.0,  			 												     0.0,  							   			 				      0.0,  													 	         0.0,	 												  			          0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
+% %                             -Ct * cos(fixed_tilt),	 						    			     -Ct * cos(fixed_tilt),			   							      -Ct * cos(fixed_tilt),											     -Ct * cos(fixed_tilt),									        		      0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
+% %     
+    effectiveness_matrix = [-Py(1) * Ct*cos(tilt(1)) - Ct * Km * sin(tilt(1)),		     -Py(2) * Ct*cos(tilt(2)) - Ct * Km * sin(tilt(2)),		  -Py(3) * Ct*cos(tilt(3)) + Ct * Km * sin(tilt(3)),			    -Py(4) * Ct*cos(tilt(4)) + Ct * Km * sin(tilt(4)),			   		  q_bar*S_A*b*Cla,	        -q_bar*S_A*b*Cla,        0.0, 		 		    0.0;
+                             Ct*(Px(1) * cos(tilt(1)) + Pz(1) * sin(tilt(1))),  			 Ct*(Px(2) * cos(tilt(2)) + Pz(2) * sin(tilt(2))),		  Ct*(Px(3) * cos(tilt(3)) + Pz(3) * sin(tilt(3))),			 	 Ct*(Px(4) * cos(tilt(4)) + Pz(4) * sin(tilt(4))),			   		  0.0, 		 	            0.0,                    q_bar*S_E*b*Cme,	 	0.0; 			
+                            -Py(1) * Ct*sin(tilt(1)) + Ct * Km * cos(tilt(1)),		     -Py(2) * Ct*sin(tilt(2)) + Ct * Km * cos(tilt(2)),		  -Py(3) * Ct*sin(tilt(3)) - Ct * Km * cos(tilt(3)),			    -Py(4) * Ct*sin(tilt(4)) - Ct * Km * cos(tilt(4)),			   	      0.0, 		 	            0.0,                    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
+                             Ct * sin(tilt(1)),	 										     Ct * sin(tilt(2)),			   							      Ct * sin(tilt(3)),											         Ct * sin(tilt(4)),										       		      0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
                              0.0,  			 												     0.0,  							   			 				      0.0,  													 	         0.0,	 												  			          0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
-                            -Ct * cos(fixed_tilt),	 						    			     -Ct * cos(fixed_tilt),			   							      -Ct * cos(fixed_tilt),											     -Ct * cos(fixed_tilt),									        		      0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
+                            -Ct * cos(tilt(1)),	 						    			     -Ct * cos(tilt(2)),			   							      -Ct * cos(tilt(3)),											     -Ct * cos(tilt(4)),									        		      0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
    
 %     effectiveness_matrix = [-Py(1) * Ct*cos(trim(5)) - Ct * Km * sin(trim(5)),				-Py(2) * Ct*cos(trim(6)) - Ct * Km * sin(trim(6)),			 -Py(3) * Ct*cos(trim(7)) + Ct * Km * sin(trim(7)),			    -Py(4) * Ct*cos(trim(8)) + Ct * Km * sin(trim(8)),			 Py(1) * Ct*trim(1) *sin(trim(5)) - Ct * Km * trim(1) *cos(trim(5)),    	     Py(2) * Ct*trim(2) *sin(trim(6)) - Ct * Km * trim(2) *cos(trim(6)),		 		Py(3) * Ct*trim(3) *sin(trim(7)) + Ct * Km * trim(3) *cos(trim(7)),		            Py(4) * Ct*trim(4) *sin(trim(8)) + Ct * Km * trim(4) *cos(trim(8)),  		-q_bar*S*b*Cla,	    q_bar*S*b*Cla,	    0.0, 		 		    0.0;
 %                              Ct*(Px(1) * cos(trim(5)) + Pz(1) * sin(trim(5))),  			 Ct*(Px(2) * cos(trim(6)) + Pz(2) * sin(trim(6))),			  Ct*(Px(3) * cos(trim(7)) + Pz(3) * sin(trim(7))),			 	 Ct*(Px(4) * cos(trim(8)) + Pz(4) * sin(trim(8))),			 Ct*trim(1) *(-Px(1) * sin(trim(5)) + Pz(1) * cos(trim(5))), 	     		     Ct*trim(2) *(-Px(2) *sin(trim(6)) + Pz(2) * cos(trim(6))),							Ct*trim(3) *(-Px(3) *sin(trim(7)) + Pz(3) * cos(trim(7))),							Ct*trim(4) *(-Px(4) *sin(trim(8)) + Pz(4) *cos(trim(8))),  					 0.0, 		 	    0.0, 		 	    q_bar*S*c_bar*Cme,	 	0.0; 			
