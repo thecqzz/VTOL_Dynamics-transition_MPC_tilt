@@ -20,11 +20,14 @@ classdef controller < handle
             [rotor_speeds_squared, deflections,saturated] = obj.ControlAllocation.CalcActuators(mult, lin_acc_des, euler_acc_des);
 
              obj.Max_speed_sq = cell2mat(cellfun(@(s)s.MaxSpeedSquared, mult.Rotors, 'uni', 0));
+
              
                 rotor_speeds_squared = rotor_speeds_squared .* obj.Max_speed_sq;
 
+%                 disp(deflections)
+
 %                 deflections = [0,0,0,0]';
-%                 rotor_speeds_squared = [0,0,0,0]';
+%                 rotor_speeds_squared = [0,0,0.01,0]';
   
         end
         
@@ -32,7 +35,7 @@ classdef controller < handle
 
                  euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
                 
-%                  euler_accel = [0,0,0]';
+%                    euler_accel = [0,0.0,0]';
         end
 
 
@@ -49,8 +52,8 @@ classdef controller < handle
                  tilt(4) = mult.State.ServoAngles(4);
                  
 
-                 x =  1 * sind(tilt(1)) + 1 * sind(tilt(2)) + 1 * sind(tilt(3)) + 1 * sind(tilt(4));
-                 z =  -1 * cosd(tilt(1)) -1 * cosd(tilt(2)) -1 * cosd(tilt(3)) -1 * cosd(tilt(4)) ;
+                  x =  1 * sind(tilt(1)) + 1 * sind(tilt(2)) + 1 * sind(tilt(3)) + 1 * sind(tilt(4));
+                  z =  -1 * cosd(tilt(1)) -1 * cosd(tilt(2)) -1 * cosd(tilt(3)) -1 * cosd(tilt(4)) ;
                  lin_accel = [x,0,z]';
                  tilt = [0,0,0,0]';
                  rpy_des = [0,0,0]';
