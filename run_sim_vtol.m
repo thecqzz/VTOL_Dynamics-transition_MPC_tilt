@@ -1,6 +1,6 @@
 %% Prepare the environment
 clc
-clear all
+clear
 close all
 
 addpath('simulator');
@@ -47,8 +47,7 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % figure; 
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
-% Or simulate position response
-sim.SetTotalTime(25);
+sim.SetTotalTime(32);
 figure;
 sim.SimulatePositionResponse([600; 0; -200], 0, true);
 
