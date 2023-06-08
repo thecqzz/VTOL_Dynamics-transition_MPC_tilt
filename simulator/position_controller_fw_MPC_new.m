@@ -33,25 +33,20 @@ classdef position_controller_fw_MPC_new < pid_controller
         tilt_angle_max = pi/2
         tilt_angle_min = -0.122
 
-
         % steady fw speed  =  27.7425;
         blending_air_speed = 10;   
         Transition_air_speed = 23; 
-
 
     end
 
 
     methods
-
-
         function [accel_des,rpy_des,tilt_angle,V_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
 
 
             addpath('D:\MECH/CasAdi')
             import casadi.*
-            
-      
+           
             obj.Mass = mult.Mass;
             
             Init_Vel = mult.State.Velocity;
@@ -59,10 +54,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             Init_rpy_dot = deg2rad(mult.State.EulerRate);
             Init_Tilt = deg2rad(mult.Servos{1}.CurrentAngle);
             Init_last_rpy_dot = deg2rad(mult.State.LastEulerRate);
-          
 
-
-            %x_ref = [[10;0;0];[0;0;0];[0;0;0];0;[0;0;0]];
             dt = time - obj.LastTime;
             
             % Horizon
@@ -112,17 +104,13 @@ classdef position_controller_fw_MPC_new < pid_controller
             Thrust = SX.sym('Thrust');
             % Control input
             controls= [Thrust;tilt_dot ;rpy_MPC];
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             n_controls = length(controls);
             
+            %state update EQ
             F_aero = obj.CalcAeroForce(V,rpy);
-            accel = obj.CalcAccel(F_aero,Thrust,rpy,tilt);
-            accel = accel + physics.Gravity;
-
+            accel = obj.CalcAccel(F_aero,Thrust,rpy,tilt)+ physics.Gravity;
             torque = CalcTorque(rpy_MPC,rpy,rpy_dot,last_rpy_dot);
             
-            %state update EQ
             rhs = [accel;
                 rpy_dot;
                 obj.I_inv*(torque);
@@ -133,16 +121,9 @@ classdef position_controller_fw_MPC_new < pid_controller
             U = SX.sym('U',n_controls,N);
             P = SX.sym('P',n_states + N*n_states);
             X = SX.sym('X',n_states,(N+1));
-            
-            
-            % A vector that represents the states over the optimization problem
-            %        objective_function = J_ref + J_state_input + J_soft;
-            
-            
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
             % eq contraint
-            %init var!!!!!!!!!!!!
-            
             st = X(:,1);
             g = []; % constraints vector
             g = [g;st-P(1:13)];  %init constraint
@@ -178,8 +159,8 @@ classdef position_controller_fw_MPC_new < pid_controller
             end
                 objective_function = objective_function + (st(1:3)-P(n_states*N+1:n_states*N+3))' * obj.Q_v * (st(1:3)-P(n_states*N+1:n_states*N+3));
             
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %solver start
             
             % make the decision variables one column vector
             OPT_variables = [reshape(X,n_states*(N+1),1);reshape(U,n_controls*N,1)];
@@ -214,49 +195,36 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(13:n_states:n_states*(N+1),1) = -pi; args.ubx(13:n_states:n_states*(N+1),1) = pi; 
 
             args.lbx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+1:n_controls:n_states*(N+1)+n_controls*N,1) = 90; %thrust in Newton calculated from max pitch angle and weight
-%             if Init_Vel(1)<6
-%                 args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = 0; %rpy_MPC in degree
-%             else
-%                 args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4; %rpy_MPC in degree
-% 
-%             end
-            args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = inf; %rpy_MPC in degree
-
-            args.lbx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
+            args.lbx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+2:n_controls:n_states*(N+1)+n_controls*N,1) = inf; 
+            args.lbx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4; %rpy_MPC 
             args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = pi/6;
             args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
 
             
             %run mpc
-            
             x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_Tilt;Init_last_rpy_dot];
             u_trim = [9.81*obj.Mass;0;0;0;0];
-            
 
             args.p(1:n_states) = x_state;
-%%                 ref tracking
+%%          ref tracking
             for k = 1:N %new - set the reference to track
 
                 t_predict = time + (k-1)*dt; % predicted time instant
                 Vx_ref = 2*t_predict; Vy_ref = 0; Vz_ref = 0;
-     
                 if Vx_ref >= 24 % the trajectory end is reached
                     Vx_ref = 24; Vy_ref = 0; Vz_ref = 0;
                 end
-
                 if t_predict > 15
                     Vx_ref = -2*(t_predict-27) ; Vy_ref = 0; Vz_ref = 0;
                 end
-
                 if Vx_ref <1e-2
                     Vx_ref = 0 ; Vy_ref = 0; Vz_ref = 0;
                 end
-
                 args.p(n_states*k+1:n_states*k+3) = [Vx_ref; Vy_ref; Vz_ref];
                 args.p(n_states*k+4:n_states*k+13) = zeros(1,10);
                 V_des =  [Vx_ref; Vy_ref; Vz_ref];
             end
-
+            % init x0
             if  obj.flag == 1
                 obj.X0 = repmat(x_state,1,N+1)';
                 obj.U0 = repmat(u_trim,1,N)';
@@ -264,47 +232,37 @@ classdef position_controller_fw_MPC_new < pid_controller
             end
             reshape_a = reshape(obj.X0',n_states*(N+1),1);
             reshape_b = reshape(obj.U0',n_controls*N,1) ;
-            
             args.x0 = [reshape_a; reshape_b];
             
-            
+            % solve begin
             sol = solver('x0', args.x0, 'lbx', args.lbx, 'ubx', args.ubx,...
                 'lbg', args.lbg, 'ubg', args.ubg,'p',args.p);
-            
             solver.stats().return_status
             
-
-            u = reshape(full(sol.x(n_states*(N+1)+1:end))',n_controls,N)'; % get controls only from the solution
+            % get controls only from the solution
+            u = reshape(full(sol.x(n_states*(N+1)+1:end))',n_controls,N)'; 
             [x_state, obj.U0] = shift(dt, x_state, u,f);
-    
+            
+            % get solution TRAJECTORY
             obj.U0 = [u(2:size(u,1),:);u(size(u,1),:)];
-            x0 = reshape(full(sol.x(1:n_states*(N+1)))',n_states,N+1)'; % get solution TRAJECTORY
-
-           
-            disp(x_state')
-
+            x0 = reshape(full(sol.x(1:n_states*(N+1)))',n_states,N+1)'; 
 
             obj.X0 = [x0(2:end,:);x0(end,:)];
-            control = u(1,:)';
             
+            % controls sent to control allocation
+            control = u(1,:)';
+           
             R_BR =[sin(Init_Tilt);
                      0         ;
                 -cos(Init_Tilt)];
-
             thrust_des =  R_BR * control(1);
             accel_des  = thrust_des ./ obj.Mass;
             
             rpy_des = rad2deg(control(3:5));
 
             tilt_speed = control(2);
-            
-            
             tilt_angle = rk4(Init_Tilt,tilt_speed,dt);
-            
             tilt_angle = rad2deg(limit_tilt(obj,tilt_angle));
-            disp(tilt_angle)
-
-            disp(rpy_des)
 
             obj.LastTime = time;  
 
