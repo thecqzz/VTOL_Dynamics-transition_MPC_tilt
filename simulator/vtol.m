@@ -44,6 +44,7 @@ classdef vtol < multirotor
     methods
         function obj = vtol(ArmAngles, RotationDirections)
             obj = obj@multirotor(ArmAngles, RotationDirections);
+
         end
 
         function [wrench, aeromoments] = CalcGeneratedWrench(obj, plantinput)

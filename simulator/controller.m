@@ -33,9 +33,9 @@ classdef controller < handle
         
         function euler_accel = ControlAttitude(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, dt)
 
-                 euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
+                  euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
                 
-%                    euler_accel = [0,0.0,0]';
+%                     euler_accel = [0,0,0]';
         end
 
 
@@ -54,16 +54,20 @@ classdef controller < handle
 
                   x =  1 * sind(tilt(1)) + 1 * sind(tilt(2)) + 1 * sind(tilt(3)) + 1 * sind(tilt(4));
                   z =  -1 * cosd(tilt(1)) -1 * cosd(tilt(2)) -1 * cosd(tilt(3)) -1 * cosd(tilt(4)) ;
+
                  lin_accel = [x,0,z]';
                  tilt = [0,0,0,0]';
                  rpy_des = [0,0,0]';
                  V_des = [0,0,0]';
 
+                 disp("the correct answer should be")
+                 disp(lin_accel + [0,0,g]')
+
 
         end
         
         
-        %%%%%%%%
+        %%%%%%%% 
 
         function DesiredVelocities = GetDesiredVelocities(obj, mult, waypoint_des,time)
             DesiredVelocities = obj.PositionController.SetVelDes(obj, mult, waypoint_des,time);

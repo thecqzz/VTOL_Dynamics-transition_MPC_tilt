@@ -48,6 +48,10 @@ classdef multirotor < handle
 
 
         function obj = multirotor(ArmAngles, RotationDirections)
+% 
+%             disp("print 2")
+%             disp(RotationDirections)
+
             % Constructor for the multirotor class
             % The number of rotors is obtained from the length of the
             % ArmAngles input.
