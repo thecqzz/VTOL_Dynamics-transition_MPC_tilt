@@ -157,8 +157,51 @@ classdef control_allocation_vtol < handle
                 actuator_trim(8) = obj.actuator_sp_8;
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
+ %%               
                 control_trim = effectiveness_matrix * actuator_trim;
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
+                
+                d = pinv(effectiveness_matrix) * (control_sp - control_trim);
+                disp("correct pinv cal")
+                disp(d)
+%%
+
+
+%                 control_trim = effectiveness_matrix * actuator_trim;
+% 
+%                 control_change = (control_sp - control_trim);
+% 
+% 
+% %                x = lsqlin(C,d,A,b,Aeq,beq,lb,ub)                
+% %                sp = pinv * (csp - trim)
+% %                eff * sp = (csp - trim)
+% %                C * x = D
+% 
+%                 lb = [0,0,0,0,0,0,0,0]';
+%                 ub = [1,1,1,1,1,1,1,1]';
+% 
+%                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
+% 
+%                 disp("solved")
+%                 disp(actuator_change)
+%                
+%                 actuator_sp = actuator_trim + actuator_change;
+
+%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % 

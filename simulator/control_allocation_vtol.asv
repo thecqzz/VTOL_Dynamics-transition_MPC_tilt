@@ -157,8 +157,48 @@ classdef control_allocation_vtol < handle
                 actuator_trim(8) = obj.actuator_sp_8;
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
+ %%               
                 control_trim = effectiveness_matrix * actuator_trim;
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
+                
+                d = pinv(effectiveness_matrix) * (control_sp - control_trim);
+                disp("correct pinv cal")
+                disp(d)
+%%
+
+
+                control_trim = effectiveness_matrix * actuator_trim;
+
+                control_change = (control_sp - control_trim);
+
+
+%                x = lsqlin(C,d,A,b,Aeq,beq,lb,ub)                
+%                sp = pinv * (csp - trim)
+%                eff * sp = (csp - trim)
+%                C * x = D
+
+                lb = [0,0,0,0,0,0,0,0]';
+                ub = [1,1,1,1,1,1,1,1]';
+
+                actuator_change =  minL1lin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
+               
+                actuator_sp = actuator_trim + actuator_change;
+
+%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 % 
@@ -270,7 +310,7 @@ function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
                              Ct * sin(tilt(1)),	 									  Ct * sin(tilt(2)),			   					       Ct * sin(tilt(3)),											Ct * sin(tilt(4)),										       	  0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
                              0.0,  			 										  0.0,  							   			 	       0.0,  													 	0.0,	 												  		  0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
                             -Ct * cos(tilt(1)),	 						    		  -Ct * cos(tilt(2)),			   					       -Ct * cos(tilt(3)),											-Ct * cos(tilt(4)),									        	  0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
-   % direction is 1 , -1, 1, +1
+   % direction is 1 , -1, 1, -1
 
 %     effectiveness_matrix = [-Py(1) * Ct*cos(trim(5)) - Ct * Km * sin(trim(5)),				-Py(2) * Ct*cos(trim(6)) - Ct * Km * sin(trim(6)),			 -Py(3) * Ct*cos(trim(7)) + Ct * Km * sin(trim(7)),			    -Py(4) * Ct*cos(trim(8)) + Ct * Km * sin(trim(8)),			 Py(1) * Ct*trim(1) *sin(trim(5)) - Ct * Km * trim(1) *cos(trim(5)),    	     Py(2) * Ct*trim(2) *sin(trim(6)) - Ct * Km * trim(2) *cos(trim(6)),		 		Py(3) * Ct*trim(3) *sin(trim(7)) + Ct * Km * trim(3) *cos(trim(7)),		            Py(4) * Ct*trim(4) *sin(trim(8)) + Ct * Km * trim(4) *cos(trim(8)),  		-q_bar*S*b*Cla,	    q_bar*S*b*Cla,	    0.0, 		 		    0.0;
 %                              Ct*(Px(1) * cos(trim(5)) + Pz(1) * sin(trim(5))),  			 Ct*(Px(2) * cos(trim(6)) + Pz(2) * sin(trim(6))),			  Ct*(Px(3) * cos(trim(7)) + Pz(3) * sin(trim(7))),			 	 Ct*(Px(4) * cos(trim(8)) + Pz(4) * sin(trim(8))),			 Ct*trim(1) *(-Px(1) * sin(trim(5)) + Pz(1) * cos(trim(5))), 	     		     Ct*trim(2) *(-Px(2) *sin(trim(6)) + Pz(2) * cos(trim(6))),							Ct*trim(3) *(-Px(3) *sin(trim(7)) + Pz(3) * cos(trim(7))),							Ct*trim(4) *(-Px(4) *sin(trim(8)) + Pz(4) *cos(trim(8))),  					 0.0, 		 	    0.0, 		 	    q_bar*S*c_bar*Cme,	 	0.0; 			

@@ -60,8 +60,8 @@ classdef controller < handle
                  rpy_des = [0,0,0]';
                  V_des = [0,0,0]';
 
-                 disp("the correct answer should be")
-                 disp(lin_accel + [0,0,g]')
+% %                  disp("the correct answer should be")
+% %                  disp(lin_accel + [0,0,g]')
 
 
         end
