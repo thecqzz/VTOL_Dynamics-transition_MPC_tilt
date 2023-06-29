@@ -60,7 +60,7 @@ classdef servo < handle
 
             obj.MaxAngle = 90;
  
-            
+         
             
             
             output = obj.MaxAngle;

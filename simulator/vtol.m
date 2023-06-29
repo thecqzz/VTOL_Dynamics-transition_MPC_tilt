@@ -97,47 +97,15 @@ classdef vtol < multirotor
 
             q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
 
-            c_y = 0; % TODO: Later
-% 
-%             C_Z0 = 0.35;
-%             C_Za = 0.11;
-%             C_D0 = 0.01;
-%             C_Da = 0.0002;
-% 
-%             alphaR = deg2rad(alpha);
-%             alpha_plusR = deg2rad(15);
-%             alpha_minusR = deg2rad(9);
-% 
-%             k_plus = 20;
-%             k_minus = 800;
-% 
-%             c_zl = C_Z0 + C_Za .* alpha;
-%             c_dl = C_D0 + C_Da .* alpha .* alpha;
-% 
-%             c_1 = 1;
-%             c_0 = 0.025;
-% 
-%             c_zs = c_1 * sind(2*alpha);
-%             c_ds = c_0 + 2*c_1*sind(alpha).^2;
-% 
-% 
-%             if alphaR >= 0 & alphaR <= pi/2
-%                 coeff = (1 + tanh(k_plus*(alpha_plusR.^2 - alphaR^2)))/(1 + tanh(k_plus * alpha_plusR.^2));
-%             else
-%                 coeff = (1 + tanh(k_minus*(alpha_minusR.^2 - alphaR.^2)))/(1 + tanh(k_minus * alpha_minusR.^2));
-%             end
-% 
-%             c_z = coeff .* c_zl + (1 - coeff).*c_zs;
-%             c_x = coeff .* c_dl + (1 - coeff).*c_ds;
+            c_y = 0;
 
+            C_Z0 = 0.35;
+            C_Za = 0.11;
+            C_D0 = 0.03;
+            C_Da = 0.2;
 
-                        C_Z0 = 0.35;
-                        C_Za = 0.11;
-                        C_D0 = 0.03;
-                        C_Da = 0.2;
-            
-                        c_z = C_Z0 + C_Za * alpha;
-                        c_x = C_D0 + C_Da * alpha * alpha;
+            c_z = C_Z0 + C_Za * alpha;
+            c_x = C_D0 + C_Da * alpha * alpha;
 
             drag = q_bar * obj.WingSurfaceArea * c_x;
             lateral = q_bar * obj.WingSurfaceArea * c_y;
@@ -181,15 +149,9 @@ classdef vtol < multirotor
             roll_moment = q_bar * obj.WingSurfaceArea * obj.Wingspan * p_tilde;
             pitch_moment = q_bar * obj.WingSurfaceArea * obj.Wingspan * q_tilde;
             yaw_moment = q_bar * obj.WingSurfaceArea * obj.Wingspan * r_tilde;
-            %             c_i = get_ci(alpha);
-            %             c_m = get_cm(alpha);
-            %             c_n = get_cn(alpha);
-            %
-            %             roll_moment = q_bar * obj.WingSurfaceArea * obj.Wingspan * c_i;
-            %             pitch_moment = q_bar * obj.WingSurfaceArea * obj.MeanChord * c_m;
-            %             yaw_moment = q_bar * obj.WingSurfaceArea * obj.Wingspan * c_n;
 
             moment = [roll_moment; pitch_moment; yaw_moment];
+            
         end
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -201,8 +163,8 @@ classdef vtol < multirotor
             roll_moment = q_bar * obj.S_A * obj.C_A * plantinput.AileronLeftRate;
             pitch_moment = q_bar * obj.S_E * obj.C_E * plantinput.ElevatorRate;
             yaw_moment = q_bar * obj.S_R * obj.C_R * plantinput.RudderRate;
-
             moment = [roll_moment; pitch_moment; yaw_moment];
+
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -211,12 +173,7 @@ classdef vtol < multirotor
             %air velocity Va_i
             Va_b = rbi * Va_i;
 
-
-
-            %Calculate angle of attack a and sideslip angle b
-            %             a = CalcAngleOfAttack(Va_b) + obj.AngleOfIncident;
             a = CalcAngleOfAttack(Va_b) ;
-            %             a = 10;
             b = 0;
 
             %Rotation matrix from body to wind
@@ -228,10 +185,7 @@ classdef vtol < multirotor
             R_BW = [cosd(a)    ,    0  ,     sind(a);
                 0          ,    1  ,     0;
                 -sind(a)   ,    0  ,     cosd(a)];
-
-            %             R_BW = [cosd(b) * cosd(a),  -sind(b) * cosd(a),     -sind(a)
-            %                     sind(b),            cosd(b),                0
-            %                     cosd(b) * sind(a),  - sind(b) * sind(a),    cosd(a) ];
+            
             R_WB = R_BW.';
 
             if nargout > 1

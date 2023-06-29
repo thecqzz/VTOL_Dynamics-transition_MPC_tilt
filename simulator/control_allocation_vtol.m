@@ -155,10 +155,8 @@ classdef control_allocation_vtol < handle
                 actuator_trim(3) = multirotor.State.RotorSpeeds(3)/1.2194e+6;
                 actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;            
 
-                ratio_1 = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
-                fixed_tilt = ratio_1; 
+                fixed_tilt = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
                 
-
                 actuator_trim(5) = obj.actuator_sp_5;
                 actuator_trim(6) = obj.actuator_sp_6;
                 actuator_trim(7) = obj.actuator_sp_7;
@@ -167,21 +165,6 @@ classdef control_allocation_vtol < handle
                 effectiveness_matrix = calc_eff_mat(q_bar, fixed_tilt);
                 control_trim = effectiveness_matrix * actuator_trim;
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
-
-
-% 
-%                 maximum_rotor = max(actuator_sp(1:4));
-% 
-%                 for i = 1:4
-%                 if maximum_rotor > 1
-%                     actuator_sp(i) = actuator_sp(i) / maximum_rotor;
-%                     disp("a number for rotor is higher than the maximum")
-%                 end
-%                 end
-% 
-%                 for i = 5:8
-%                 actuator_sp(i) = min(1, actuator_sp(i))      ;
-%                 end
                                
                 rotor_speeds_squared = actuator_sp(1:4);
                 
@@ -190,8 +173,7 @@ classdef control_allocation_vtol < handle
 
 %                 deflections = [abs(actuator_sp(9)+actuator_sp(10))/2  actuator_sp(11) actuator_sp(12)];
 
-                
-
+               
                 deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
 
                 obj.actuator_sp_5 = actuator_sp(5);

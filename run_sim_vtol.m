@@ -1,6 +1,6 @@
 %% Prepare the environment
 clc
-clear
+clear all
 close all
 
 addpath('simulator');
