@@ -177,9 +177,8 @@ classdef control_allocation_vtol < handle
                 C = eye(6,8);
                 d = zeros(6,1);
 
-                options = optimoptions('lsqlin');
 
-                actuator_change = lsqlin(C,d,[],[],effectiveness_matrix,control_change,lb,ub,[],options);
+                actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
 
 % % %                 a = size(actuator_change);
 % % % 
