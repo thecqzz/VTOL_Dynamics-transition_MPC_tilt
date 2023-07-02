@@ -128,38 +128,6 @@ classdef control_allocation_vtol < handle
 
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
- %%               
-% % %                 control_trim = effectiveness_matrix * actuator_trim;
-% % %                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
-% % %                 
-% % %                 d = pinv(effectiveness_matrix) * (control_sp - control_trim);
-% % %                 disp("correct pinv cal")
-% % %                 disp(d)
-%%
-
-
-%                 control_trim = effectiveness_matrix * actuator_trim;
-% 
-%                 control_change = (control_sp - control_trim);
-% 
-% 
-% %                x = lsqlin(C,d,A,b,Aeq,beq,lb,ub)                
-% %                sp = pinv * (csp - trim)
-% %                eff * sp = (csp - trim)
-% %                C * x = D
-% 
-%                 lb = [0,0,0,0,0,0,0,0]';
-%                 ub = [1,1,1,1,1,1,1,1]';
-% 
-%                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
-% 
-%                 disp("solved")
-%                 disp(actuator_change)
-%                
-%                 actuator_sp = actuator_trim + actuator_change;
-
-%%
-
 
                 control_trim = effectiveness_matrix * actuator_trim;
 
@@ -174,8 +142,8 @@ classdef control_allocation_vtol < handle
                 lb = [0,0,0,0,-1,-1,-1,-1]';
                 ub = [1,1,1,1,1,1,1,1]';
 
-                C = eye(6,8);
-                d = zeros(6,1);
+%                 C = eye(6,8);
+%                 d = zeros(6,1);
 
 
                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
@@ -191,21 +159,7 @@ classdef control_allocation_vtol < handle
                 disp("solved")
                 disp(actuator_change)
 
-
-%                 disp("actuator_trim")
-%                 disp(size(actuator_trim))
-% 
-%                 disp("actuator_change")
-%                 disp(size(actuator_change))
-               
                 actuator_sp = actuator_trim + actuator_change;
-
-                disp("actuator_sp")
-                disp(actuator_sp)
-
-
-                disp("actuator_trim")
-                disp(actuator_trim)
 
 % 
 %                 maximum_rotor = max(actuator_sp(1:4));
@@ -222,12 +176,7 @@ classdef control_allocation_vtol < handle
 %                 end
                                
                 rotor_speeds_squared = actuator_sp(1:4);
-                
-% %                 tilt(1) = rad2deg(fixed_tilt);
-% %                 tilt(2) = rad2deg(fixed_tilt);
-
-%                 deflections = [abs(actuator_sp(9)+actuator_sp(10))/2  actuator_sp(11) actuator_sp(12)];
-
+               
                 
 
                 deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
