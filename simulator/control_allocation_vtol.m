@@ -9,13 +9,7 @@ classdef control_allocation_vtol < handle
         blending_air_speed = 22.194;
         Transition_air_speed = 27.7425;
         Max_speed_sq
-        
-        actuator_sp_5 = 0;
-        actuator_sp_6 = 0;
-        actuator_sp_7 = 0;
-        actuator_sp_8 = 0;
-
-
+       
 %%%
     end
     
@@ -123,12 +117,7 @@ classdef control_allocation_vtol < handle
                 Va_i = multirotor.State.AirVelocity;
                 q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
                 
-                actuator_trim = zeros(8, 1); 
-
-                actuator_trim(1) = multirotor.State.RotorSpeeds(1)/1.2194e+6;
-                actuator_trim(2) = multirotor.State.RotorSpeeds(2)/1.2194e+6;
-                actuator_trim(3) = multirotor.State.RotorSpeeds(3)/1.2194e+6;
-                actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;            
+                actuator_trim = zeros(8, 1);       
                 
                 tilt = zeros(4,1);
 
@@ -137,33 +126,15 @@ classdef control_allocation_vtol < handle
                 tilt(3) = (pi / 2) * multirotor.State.ServoAngles(3) / 90;
                 tilt(4) = (pi / 2) * multirotor.State.ServoAngles(4) / 90;
 
-
-%                 disp("1")
-%                 disp(multirotor.State.ServoAngles(1))
-% 
-%                 disp("2")
-%                 disp(multirotor.State.ServoAngles(2))
-% 
-%                 disp("3")
-%                 disp(multirotor.State.ServoAngles(3))
-% 
-%                 disp("4")
-%                 disp(multirotor.State.ServoAngles(4))
-                
-
-                actuator_trim(5) = obj.actuator_sp_5;
-                actuator_trim(6) = obj.actuator_sp_6;
-                actuator_trim(7) = obj.actuator_sp_7;
-                actuator_trim(8) = obj.actuator_sp_8;
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
  %%               
-                control_trim = effectiveness_matrix * actuator_trim;
-                actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
-                
-                d = pinv(effectiveness_matrix) * (control_sp - control_trim);
-                disp("correct pinv cal")
-                disp(d)
+% % %                 control_trim = effectiveness_matrix * actuator_trim;
+% % %                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
+% % %                 
+% % %                 d = pinv(effectiveness_matrix) * (control_sp - control_trim);
+% % %                 disp("correct pinv cal")
+% % %                 disp(d)
 %%
 
 
@@ -190,19 +161,52 @@ classdef control_allocation_vtol < handle
 %%
 
 
+                control_trim = effectiveness_matrix * actuator_trim;
+
+                control_change = (control_sp - control_trim);
+
+
+%                x = lsqlin(C,d,A,b,Aeq,beq,lb,ub)                
+%                sp = pinv * (csp - trim)
+%                eff * sp = (csp - trim)
+%                C * x = D
+
+                lb = [0,0,0,0,-1,-1,-1,-1]';
+                ub = [1,1,1,1,1,1,1,1]';
+
+                C = eye(6,8);
+                d = zeros(6,1);
+
+                options = optimoptions('lsqlin');
+
+                actuator_change = lsqlin(C,d,[],[],effectiveness_matrix,control_change,lb,ub,[],options);
+
+% % %                 a = size(actuator_change);
+% % % 
+% % %                 if a(1)==0 & a(2)==0
+% % %                     actuator_change = zeros(8,1);
+% % %                 end
 
 
 
+                disp("solved")
+                disp(actuator_change)
 
 
+%                 disp("actuator_trim")
+%                 disp(size(actuator_trim))
+% 
+%                 disp("actuator_change")
+%                 disp(size(actuator_change))
+               
+                actuator_sp = actuator_trim + actuator_change;
+
+                disp("actuator_sp")
+                disp(actuator_sp)
 
 
-
-
-
-
-
-
+                disp("actuator_trim")
+                disp(actuator_trim)
 
 % 
 %                 maximum_rotor = max(actuator_sp(1:4));
@@ -229,10 +233,7 @@ classdef control_allocation_vtol < handle
 
                 deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
 
-                obj.actuator_sp_5 = actuator_sp(5);
-                obj.actuator_sp_6 = actuator_sp(6);
-                obj.actuator_sp_7 = actuator_sp(7);
-                obj.actuator_sp_8 = actuator_sp(8);
+
 
                 
  

@@ -52,8 +52,8 @@ classdef controller < handle
                  tilt(4) = mult.State.ServoAngles(4);
                  
 
-                  x =  1 * sind(tilt(1)) + 1 * sind(tilt(2)) + 1 * sind(tilt(3)) + 1 * sind(tilt(4));
-                  z =  -1 * cosd(tilt(1)) -1 * cosd(tilt(2)) -1 * cosd(tilt(3)) -1 * cosd(tilt(4)) ;
+                  x =  1.5 * sind(tilt(1)) + 1.5 * sind(tilt(2)) + 1.5 * sind(tilt(3)) + 1.5 * sind(tilt(4));
+                  z =  -1.5 * cosd(tilt(1)) -1.5 * cosd(tilt(2)) -1.5 * cosd(tilt(3)) -1.5 * cosd(tilt(4)) ;
 
                  lin_accel = [x,0,z]';
                  tilt = [0,0,0,0]';
