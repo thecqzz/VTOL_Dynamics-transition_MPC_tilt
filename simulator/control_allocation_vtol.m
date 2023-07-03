@@ -9,6 +9,9 @@ classdef control_allocation_vtol < handle
         blending_air_speed = 22.194;
         Transition_air_speed = 27.7425;
         Max_speed_sq
+
+
+        actuator_store = zeros(8,1)
        
 %%%
     end
@@ -105,20 +108,17 @@ classdef control_allocation_vtol < handle
  
 
                 % total maxx = 7.4270
-
-
-%                 F_des = [0,0,-3]';
                 
                 control_sp = [M_des; F_des];
-
-%                 disp("show control sp in allocation")
 
 
                 Va_i = multirotor.State.AirVelocity;
                 q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
                 
-                actuator_trim = zeros(8, 1);       
-                
+                actuator_trim = obj.actuator_store; 
+
+% %                 actuator_trim = zeros(8,1);
+
                 tilt = zeros(4,1);
 
                 tilt(1) = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
@@ -139,11 +139,17 @@ classdef control_allocation_vtol < handle
 %                eff * sp = (csp - trim)
 %                C * x = D
 
-                lb = [0,0,0,0,-1,-1,-1,-1]';
-                ub = [1,1,1,1,1,1,1,1]';
+                abs_lb = [0,0,0,0,-1,-1,-1,-1]';
+                abs_ub = [1,1,1,1,1,1,1,1]';
+                
+               
 
-%                 C = eye(6,8);
-%                 d = zeros(6,1);
+% %                 lb = [0,0,0,0,-1,-1,-1,-1]';
+% %                 ub = [1,1,1,1,1,1,1,1]';
+            
+                lb = abs_lb - actuator_trim;
+                ub = abs_ub - actuator_trim;
+
 
 
                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
@@ -160,28 +166,14 @@ classdef control_allocation_vtol < handle
                 disp(actuator_change)
 
                 actuator_sp = actuator_trim + actuator_change;
-
-% 
-%                 maximum_rotor = max(actuator_sp(1:4));
-% 
-%                 for i = 1:4
-%                 if maximum_rotor > 1
-%                     actuator_sp(i) = actuator_sp(i) / maximum_rotor;
-%                     disp("a number for rotor is higher than the maximum")
-%                 end
-%                 end
-% 
-%                 for i = 5:8
-%                 actuator_sp(i) = min(1, actuator_sp(i))      ;
-%                 end
-                               
+     
                 rotor_speeds_squared = actuator_sp(1:4);
                
                 
 
                 deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
 
-
+                obj.actuator_store = actuator_sp;
 
                 
  
@@ -195,12 +187,6 @@ function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
     
     %           1         2        3         4
     
-
-%     Px = [ 0.1515    0.1515  -0.1515   -0.1515];
-%     Py = [ 0.245    -0.245   -0.245     0.245];
-
-%     Px = [ 0.4 * cosd(30) 0.4 * cosd(150) 0.4 * cosd(210) 0.4 * cosd(330)];
-%     Py = [ 0.4 * sind(30) 0.4 * sind(150) 0.4 * sind(210) 0.4 * sind(330)];
     
     Px = [ 1 * cosd(30) 1 * cosd(150) 1 * cosd(210) 1 * cosd(330)];
     Py = [ 1 * sind(30) 1 * sind(150) 1 * sind(210) 1 * sind(330)];
@@ -212,19 +198,6 @@ function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
    
 
     ro = 1.225;
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%      S_A = 0.44;
-%      S_E = 0.44;
-%      S_R = 0.44;
-%      b = 2.0 ;
-
-%      c_bar = 0.2; %
-%      Cla = 0.1;
-%       Cme = 0.5;
-%      Cnr = 0.5;
-    
 
      b = 1.0; %wing
 % 
