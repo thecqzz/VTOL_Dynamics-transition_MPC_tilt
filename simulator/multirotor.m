@@ -556,8 +556,6 @@ classdef multirotor < handle
                NE_G(:, i) = obj.Rotors{i}.GetReactionMomentPerUnitInput();
             end
 
-            disp("set")
-            disp(NE_G)
             
             % Calculate F matrix (related to body thrust moments)
             NE_F = zeros(3, obj.NumOfRotors);

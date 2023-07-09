@@ -26,14 +26,11 @@ classdef control_allocation_vtol < handle
 
     methods
         function obj = control_allocation_vtol(multirotor)
-            obj.SetMethod(multirotor, control_allocation_types.Unified_PseudoInv);
+            obj.SetMethod(multirotor, control_allocation_types.NDI);
         end
         
         function SetMethod(obj, multirotor, method)
             obj.Method = method;
-            if method == control_allocation_types.NDI
-                obj.InitializeNDIMethod(multirotor);
-            end
         end
         
         function [rotor_speeds_squared, deflections,saturated] = CalcActuators(obj, mult, lin_accel, ang_accel)
@@ -99,184 +96,198 @@ classdef control_allocation_vtol < handle
     %% Private Methods
     methods(Access=protected)
 
-        function [rotor_speeds_squared, deflections] = ActuatorCommands_PseudoInv(obj, multirotor, lin_accel, ang_accel)
+
+        function rotor_speeds_squared = NDIRotorSpeeds(obj, multirotor, lin_accel, euler_accel)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Initialize the NDI method
+        
+            % Calculate L matrix (related to body thrust forces)
+            obj.NDI_L = zeros(3, multirotor.NumOfRotors);
+            for i = 1 : multirotor.NumOfRotors
+               obj.NDI_L(:, i) = multirotor.Rotors{i}.GetThrustForcePerUnitInput();
+            end
+
+%             disp("NDI_L")
+%             disp(obj.NDI_L)
+
+            % Calculate G matrix (related to body reaction moments)
+            NDI_G = zeros(3, multirotor.NumOfRotors);
+            for i = 1 : multirotor.NumOfRotors
+               NDI_G(:, i) = multirotor.Rotors{i}.GetReactionMomentPerUnitInput();
+            end
+%             disp("NDI_G")
+%             disp(NDI_G)
             
-            % define speed to determine vtol mode
-            air_speed_norm = norm(multirotor.State.AirVelocity);
+            % Calculate F matrix (related to body thrust moments)
+            NDI_F = zeros(3, multirotor.NumOfRotors);
+            for i = 1 : multirotor.NumOfRotors
+                r = multirotor.Rotors{i}.Position;
+                F = multirotor.Rotors{i}.GetThrustForcePerUnitInput();
+                NDI_F(:, i) = cross(r, F);
+            end
 
-                %y = [lin_accel; ang_accel];
+%             disp("NDI_F")
+%             disp(NDI_F)
+            
+            obj.NDI_M = NDI_F + NDI_G;
 
-                M_des = multirotor.I*ang_accel;
-                F_des = multirotor.TotalMass.*lin_accel ;
- 
-
-                % total maxx = 7.4270
-
-
-%                 F_des = [0,0,-3]';
-                
-                control_sp = [M_des; F_des];
-
-%                 disp("show control sp in allocation")
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-                Va_i = multirotor.State.AirVelocity;
-                q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
-                
-                actuator_trim = zeros(8, 1); 
 
-                actuator_trim(1) = multirotor.State.RotorSpeeds(1)/1.2194e+6;
-                actuator_trim(2) = multirotor.State.RotorSpeeds(2)/1.2194e+6;
-                actuator_trim(3) = multirotor.State.RotorSpeeds(3)/1.2194e+6;
-                actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;            
-                
-                tilt = zeros(4,1);
-
-                tilt(1) = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
-                tilt(2) = (pi / 2) * multirotor.State.ServoAngles(2) / 90;
-                tilt(3) = (pi / 2) * multirotor.State.ServoAngles(3) / 90;
-                tilt(4) = (pi / 2) * multirotor.State.ServoAngles(4) / 90;
+        % Calculate the rotor speeds from the desired linear and angular accelerations
+        % using NDI method
+            
+            % Create the desired output matrix y
 
 
-%                 disp("1")
-%                 disp(multirotor.State.ServoAngles(1))
-% 
-%                 disp("2")
-%                 disp(multirotor.State.ServoAngles(2))
-% 
-%                 disp("3")
-%                 disp(multirotor.State.ServoAngles(3))
-% 
-%                 disp("4")
-%                 disp(multirotor.State.ServoAngles(4))
-                
+            y = [lin_accel; euler_accel];
 
-                actuator_trim(5) = obj.actuator_sp_5;
-                actuator_trim(6) = obj.actuator_sp_6;
-                actuator_trim(7) = obj.actuator_sp_7;
-                actuator_trim(8) = obj.actuator_sp_8;
-                
-                effectiveness_matrix = calc_eff_mat(q_bar, tilt);
-                control_trim = effectiveness_matrix * actuator_trim;
-                actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
+            % Get the rotation matrix
+            RBI = multirotor.GetRotationMatrix();
+            
+            % Calculate eta_dot
+            phi = deg2rad(multirotor.State.RPY(1));
+            theta = deg2rad(multirotor.State.RPY(2));
+            phi_dot = deg2rad(multirotor.State.EulerRate(1));
+            theta_dot = deg2rad(multirotor.State.EulerRate(2));
+            eta_dot = calc_eta_dot(phi, theta, phi_dot, theta_dot);
+            
+            % Calculate eta
+            eta = [1,   sin(phi)*tan(theta), cos(phi)*tan(theta);
+                   0, cos(phi), -sin(phi);
+                   0, sin(phi) / cos(theta), cos(phi) / cos(theta)];
+
+            % Calculate the A matrix in y = A + Bu
+            NDI_M_Grav = zeros(3, 1);
+            for i = 1 : multirotor.NumOfRotors
+                r = multirotor.Rotors{i}.Position;
+                G_motor = multirotor.Rotors{i}.MotorMass * physics.Gravity;
+                G_motorB = RBI * G_motor;
+                G_arm = multirotor.Rotors{i}.ArmMass * physics.Gravity;
+                G_armB = RBI * G_arm;
+                NDI_M_Grav = NDI_M_Grav + cross(r, G_motorB) + cross(r/2, G_armB);
+            end
+            if multirotor.HasEndEffector()
+                r = multirotor.EndEffector.EndEffectorPosition;
+                G_eeI = multirotor.EndEffector.EndEffectorMass * physics.Gravity;
+                G_eeB = RBI * G_eeI;
+                G_armI = multirotor.EndEffector.ArmMass * physics.Gravity;
+                G_armB = RBI * G_armI;
+                NDI_M_Grav = NDI_M_Grav + cross(r, G_eeB) + cross(r/2, G_armB);
+            end
+            
+            A_moment = eta_dot * multirotor.State.Omega + eta * multirotor.I_inv * ...
+                (NDI_M_Grav - cross(multirotor.State.Omega, multirotor.I * multirotor.State.Omega));
+            A = [physics.Gravity; A_moment];
+
+% do not counter gravity
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            A = zeros(6,1);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%            
+            % Calculate the B matrix
+
+            B_force = RBI' * obj.NDI_L / multirotor.TotalMass;
+            B_moment = eta * multirotor.I_inv * obj.NDI_M;
+            B = [B_force; B_moment];
+            
+            % Calculate the rotor speeds
+            rotor_speeds_squared = pinv(B) * (y - A); 
+        end
+
+        function [rotor_speeds_squared, deflections] = ActuatorCommands(obj, multirotor, lin_accel, euler_accel)
+            
+          % Calculate the rotor speeds from the desired linear and angular accelerations
+        % using NDI method
+            
+            % Create the desired output matrix y
+            y = [lin_accel; euler_accel];
+            M_des = (euler_accel' * multirotor.I)';
+            F_des = lin_accel * multirotor.TotalMass;
+%             [rbw, ~, ~] = multirotor.CalcWindToBodyRotation(multirotor.State.AirVelocity);
+            Va_i = multirotor.State.AirVelocity;
+            q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
 
 
-% 
-%                 maximum_rotor = max(actuator_sp(1:4));
-% 
-%                 for i = 1:4
-%                 if maximum_rotor > 1
-%                     actuator_sp(i) = actuator_sp(i) / maximum_rotor;
-%                     disp("a number for rotor is higher than the maximum")
-%                 end
-%                 end
-% 
-%                 for i = 5:8
-%                 actuator_sp(i) = min(1, actuator_sp(i))      ;
-%                 end
-                               
-                rotor_speeds_squared = actuator_sp(1:4);
-                
-% %                 tilt(1) = rad2deg(fixed_tilt);
-% %                 tilt(2) = rad2deg(fixed_tilt);
+            S_A = 0.0720; %aileron surface area in m^2
+            S_E = 0.03; %elevator surface area in m^2
+            S_R = 0.008; %rudder surface area in m^2
+            Wingspan = 1;
+            MeanChord = 1;
 
-%                 deflections = [abs(actuator_sp(9)+actuator_sp(10))/2  actuator_sp(11) actuator_sp(12)];
 
-                
+            del_a = M_des(1) / (multirotor.C_A * S_A * Wingspan * q_bar);
+            del_e = M_des(2) / (multirotor.C_E * S_E * MeanChord * q_bar);
+            del_r = M_des(3) / (multirotor.C_R * S_R * Wingspan * q_bar);
 
-                deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
-
-                obj.actuator_sp_5 = actuator_sp(5);
-                obj.actuator_sp_6 = actuator_sp(6);
-                obj.actuator_sp_7 = actuator_sp(7);
-                obj.actuator_sp_8 = actuator_sp(8);
-
-                
- 
+%             disp("multirotor.C_A")
+%             disp(multirotor.C_A)
+%             disp("multirotor.C_E")
+%             disp(multirotor.C_E)
+%             disp("multirotor.C_R")
+%             disp(multirotor.C_R)
+            
+            del_a = min(max(del_a, -1), 1);
+            del_e = min(max(del_e, -1), 1);
+            del_r = min(max(del_r, -1), 1);
+            
+            a = 0.0185;
+            b = 35.217;
+            
+            f1 = min(max(0, a*(q_bar - b) + 0.5), 1);
+            del_a = del_a * f1;
+            del_e = del_e * f1;
+            del_r = del_r * f1;
+            
+            deflections = [del_a, del_e, del_r];
+            
+            M_def = [multirotor.C_A * S_A * Wingspan * q_bar * del_a;
+                     multirotor.C_E * S_E * MeanChord * q_bar * del_e
+                     multirotor.C_R * S_R * Wingspan * q_bar * del_r];
+                 
+            M_r = M_des - M_def;
+            
+%             y = [F_des(1); F_des(3);M_r];
+%             
+%             A1 = [sin(tiltangle), sin(tiltangle), sin(tiltangle), sin(tiltangle)];
+%             A2 = [-cos(tiltangle), -cos(tiltangle), -cos(tiltangle), -cos(tiltangle)];
+%             A3 = [-multirotor.L0 * cos(tiltangle) + Cq/Ct*sin(tiltangle), -multirotor.L0 * cos(tiltangle) - Cq/Ct*sin(tiltangle), multirotor.L0 * cos(tiltangle) + Cq/Ct*sin(tiltangle), multirotor.L0 * cos(tiltangle) - Cq/Ct*sin(tiltangle)]; 
+%             A4 = [-multirotor.l3*cos(tiltangle), multirotor.l4*cos(tiltangle), multirotor.l4*cos(tiltangle), -multirotor.l3*cos(tiltangle)];
+%             A5 = [-multirotor.L0 * sin(tiltangle) - Cq/Ct*cos(tiltangle), -multirotor.L0 * sin(tiltangle) + Cq/Ct*cos(tiltangle), multirotor.L0 * sin(tiltangle) - Cq/Ct*cos(tiltangle), multirotor.L0 * sin(tiltangle) + Cq/Ct*cos(tiltangle)];
+%             A = [A1;A2;A3;A4;A5];
+%             
+%             rotor_speeds = y * pinv(A);
+            angular_accel_r = (M_r' * multirotor.I_inv)';
+            rotor_speeds_squared = NDIRotorSpeeds(obj, multirotor, lin_accel, angular_accel_r);
+            
         end
     end
 end
 
+
+
+
 %% Other functions
-function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
-    
-    
-    %           1         2        3         4
-    
+function eta_dot = calc_eta_dot(phi, theta, phi_dot, theta_dot)
+    eta_dot_11 = 0;
+    eta_dot_12 = sin(phi)*(tan(theta)^2 + 1)*theta_dot + cos(phi)*tan(theta)*phi_dot;
+    eta_dot_13 = cos(phi)*(tan(theta)^2 + 1)*theta_dot - sin(phi)*tan(theta)*phi_dot;
 
-%     Px = [ 0.1515    0.1515  -0.1515   -0.1515];
-%     Py = [ 0.245    -0.245   -0.245     0.245];
+    eta_dot_21 = 0;
+    eta_dot_22 = -phi_dot*sin(phi);
+    eta_dot_23 = -phi_dot*cos(phi);
 
-%     Px = [ 0.4 * cosd(30) 0.4 * cosd(150) 0.4 * cosd(210) 0.4 * cosd(330)];
-%     Py = [ 0.4 * sind(30) 0.4 * sind(150) 0.4 * sind(210) 0.4 * sind(330)];
-    
-    Px = [ 1 * cosd(30) 1 * cosd(150) 1 * cosd(210) 1 * cosd(330)];
-    Py = [ 1 * sind(30) 1 * sind(150) 1 * sind(210) 1 * sind(330)];
+    eta_dot_31 = 0;
+    eta_dot_32 = (cos(phi)*phi_dot)/cos(theta) + (sin(phi)*sin(theta)*theta_dot)/cos(theta)^2;
+    eta_dot_33 = (cos(phi)*sin(theta)*theta_dot)/cos(theta)^2 - (sin(phi)*phi_dot)/cos(theta);
 
-    Pz = zeros(1, 4);
-
-    Ct = (1.08105e-4 / 5)          * 1.2194e+6;    
-    Km = ((1.08105e-4 / 5) * 0.05) * 1.2194e+6;
-   
-
-    ro = 1.225;
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%      S_A = 0.44;
-%      S_E = 0.44;
-%      S_R = 0.44;
-%      b = 2.0 ;
-
-%      c_bar = 0.2; %
-%      Cla = 0.1;
-%       Cme = 0.5;
-%      Cnr = 0.5;
-    
-
-     b = 1.0; %wing
-% 
-     S_A = 0.0720; %aileron surface area in m^2
-     S_E = 0.03; %elevator surface area in m^2
-     S_R = 0.008; %rudder surface area in m^2
-% 
-     Cla = 0.11730; %Aileron constant
-     Cme = 0.55604; %Elevator constant
-     Cnr = 0.08810; %Rudder constant
-
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-%     effectiveness_matrix = [-Py(1) * Ct*cos(trim(5)) - Ct * Km * sin(trim(5)),				-Py(2) * Ct*cos(trim(5)) - Ct * Km * sin(trim(5)),			 -Py(3) * Ct*cos(trim(5)) + Ct * Km * sin(trim(5)),			    -Py(4) * Ct*cos(trim(5)) + Ct * Km * sin(trim(5)),			 - Ct * Km * trim(1) *cos(trim(5)),    	    2 * q_bar*S_A*b*Cla,	    	    0.0, 		 		    0.0;
-%                              Ct*(Px(1) * cos(trim(5)) + Pz(1) * sin(trim(5))),  			 Ct*(Px(2) * cos(trim(5)) + Pz(2) * sin(trim(5))),			  Ct*(Px(3) * cos(trim(5)) + Pz(3) * sin(trim(5))),			 	 Ct*(Px(4) * cos(trim(5)) + Pz(4) * sin(trim(5))),			 0.0, 	     		    0.0, 		 	     		 	    q_bar*S_E*b*Cme,	 	0.0; 			
-%                             -Py(1) * Ct*sin(trim(5)) + Ct * Km * cos(trim(5)),				-Py(2) * Ct*sin(trim(5)) + Ct * Km * cos(trim(5)),			 -Py(3) * Ct*sin(trim(5)) - Ct * Km * cos(trim(5)),			    -Py(4) * Ct*sin(trim(5)) - Ct * Km * cos(trim(5)),			 - Ct * Km * trim(1) *sin(trim(5)) - Ct * Km * trim(1) *sin(trim(5)) - Ct * Km * trim(1) *sin(trim(5)) - Ct * Km * trim(1) *sin(trim(5)),   	        0.0, 		 	     		 	    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
-%                              Ct * sin(trim(5)),	 										     Ct * sin(trim(5)),			   							      Ct * sin(trim(5)),											 Ct * sin(trim(5)),										     Ct * trim(1) *cos(trim(5)) + Ct * trim(2) *cos(trim(5)) + Ct * trim(3) *cos(trim(5)) + Ct * trim(4) *cos(trim(5)), 									     		  	0.0, 		 	     		 	    0.0, 		 		 	0.0; 			
-%                              0.0,  			 												 0.0,  						   			 				  0.0,  													 	     0.0,	 												     0.0,		 		  					     					     			0.0, 		 	     		 	    0.0, 		 		 	0.0; 			
-%                             -Ct * cos(trim(5)),	 						    			    -Ct * cos(trim(5)),			   							     -Ct * cos(trim(5)),											-Ct * cos(trim(5)),										     Ct * trim(1) *sin(trim(5)) + Ct * trim(2) *sin(trim(5)) + Ct * trim(3) *sin(trim(5)) + Ct * trim(4) *sin(trim(5)), 									     		    0.0,            		 	     	0.0, 		 		 	0.0]; 			
-%     
-
-% %     effectiveness_matrix = [-Py(1) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		     -Py(2) * Ct*cos(fixed_tilt) - Ct * Km * sin(fixed_tilt),		  -Py(3) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			    -Py(4) * Ct*cos(fixed_tilt) + Ct * Km * sin(fixed_tilt),			   		  q_bar*S_A*b*Cla,	        -q_bar*S_A*b*Cla,        0.0, 		 		    0.0;
-% %                              Ct*(Px(1) * cos(fixed_tilt) + Pz(1) * sin(fixed_tilt)),  			 Ct*(Px(2) * cos(fixed_tilt) + Pz(2) * sin(fixed_tilt)),		  Ct*(Px(3) * cos(fixed_tilt) + Pz(3) * sin(fixed_tilt)),			 	 Ct*(Px(4) * cos(fixed_tilt) + Pz(4) * sin(fixed_tilt)),			   		  0.0, 		 	            0.0,                    q_bar*S_E*b*Cme,	 	0.0; 			
-% %                             -Py(1) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		     -Py(2) * Ct*sin(fixed_tilt) + Ct * Km * cos(fixed_tilt),		  -Py(3) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			    -Py(4) * Ct*sin(fixed_tilt) - Ct * Km * cos(fixed_tilt),			   	      0.0, 		 	            0.0,                    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
-% %                              Ct * sin(fixed_tilt),	 										     Ct * sin(fixed_tilt),			   							      Ct * sin(fixed_tilt),											         Ct * sin(fixed_tilt),										       		      0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
-% %                              0.0,  			 												     0.0,  							   			 				      0.0,  													 	         0.0,	 												  			          0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
-% %                             -Ct * cos(fixed_tilt),	 						    			     -Ct * cos(fixed_tilt),			   							      -Ct * cos(fixed_tilt),											     -Ct * cos(fixed_tilt),									        		      0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
-% %     
-    effectiveness_matrix = [-Py(1) * Ct*cos(tilt(1)) +  Km * sin(tilt(1)),		      -Py(2) * Ct*cos(tilt(2)) -  Km * sin(tilt(2)),		   -Py(3) * Ct*cos(tilt(3)) +  Km * sin(tilt(3)),			    -Py(4) * Ct*cos(tilt(4)) -  Km * sin(tilt(4)),			   		  q_bar*S_A*b*Cla,	        -q_bar*S_A*b*Cla,        0.0, 		 		    0.0;
-                             Ct*(Px(1) * cos(tilt(1)) + Pz(1) * sin(tilt(1))),  	  Ct*(Px(2) * cos(tilt(2)) + Pz(2) * sin(tilt(2))),		   Ct*(Px(3) * cos(tilt(3)) + Pz(3) * sin(tilt(3))),			Ct*(Px(4) * cos(tilt(4)) + Pz(4) * sin(tilt(4))),			      0.0, 		 	            0.0,                    q_bar*S_E*b*Cme,	 	0.0; 			
-                            -Py(1) * Ct*sin(tilt(1)) -  Km * cos(tilt(1)),		      -Py(2) * Ct*sin(tilt(2)) +  Km * cos(tilt(2)),		   -Py(3) * Ct*sin(tilt(3)) -  Km * cos(tilt(3)),			    -Py(4) * Ct*sin(tilt(4)) +  Km * cos(tilt(4)),			   	      0.0, 		 	            0.0,                    0.0, 		 		 	q_bar*S_R*b*Cnr; 	
-                             Ct * sin(tilt(1)),	 									  Ct * sin(tilt(2)),			   					       Ct * sin(tilt(3)),											Ct * sin(tilt(4)),										       	  0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
-                             0.0,  			 										  0.0,  							   			 	       0.0,  													 	0.0,	 												  		  0.0, 		 	            0.0,                    0.0, 		 	        0.0; 			
-                            -Ct * cos(tilt(1)),	 						    		  -Ct * cos(tilt(2)),			   					       -Ct * cos(tilt(3)),											-Ct * cos(tilt(4)),									        	  0.0, 		 	            0.0,                    0.0, 		 	        0.0]; 			
-   % direction is 1 , -1, 1, -1
-
-%     effectiveness_matrix = [-Py(1) * Ct*cos(trim(5)) - Ct * Km * sin(trim(5)),				-Py(2) * Ct*cos(trim(6)) - Ct * Km * sin(trim(6)),			 -Py(3) * Ct*cos(trim(7)) + Ct * Km * sin(trim(7)),			    -Py(4) * Ct*cos(trim(8)) + Ct * Km * sin(trim(8)),			 Py(1) * Ct*trim(1) *sin(trim(5)) - Ct * Km * trim(1) *cos(trim(5)),    	     Py(2) * Ct*trim(2) *sin(trim(6)) - Ct * Km * trim(2) *cos(trim(6)),		 		Py(3) * Ct*trim(3) *sin(trim(7)) + Ct * Km * trim(3) *cos(trim(7)),		            Py(4) * Ct*trim(4) *sin(trim(8)) + Ct * Km * trim(4) *cos(trim(8)),  		-q_bar*S*b*Cla,	    q_bar*S*b*Cla,	    0.0, 		 		    0.0;
-%                              Ct*(Px(1) * cos(trim(5)) + Pz(1) * sin(trim(5))),  			 Ct*(Px(2) * cos(trim(6)) + Pz(2) * sin(trim(6))),			  Ct*(Px(3) * cos(trim(7)) + Pz(3) * sin(trim(7))),			 	 Ct*(Px(4) * cos(trim(8)) + Pz(4) * sin(trim(8))),			 Ct*trim(1) *(-Px(1) * sin(trim(5)) + Pz(1) * cos(trim(5))), 	     		     Ct*trim(2) *(-Px(2) *sin(trim(6)) + Pz(2) * cos(trim(6))),							Ct*trim(3) *(-Px(3) *sin(trim(7)) + Pz(3) * cos(trim(7))),							Ct*trim(4) *(-Px(4) *sin(trim(8)) + Pz(4) *cos(trim(8))),  					 0.0, 		 	    0.0, 		 	    q_bar*S*c_bar*Cme,	 	0.0; 			
-%                             -Py(1) * Ct*sin(trim(5)) + Ct * Km * cos(trim(5)),				-Py(2) * Ct*sin(trim(6)) + Ct * Km * cos(trim(6)),			 -Py(3) * Ct*sin(trim(7)) - Ct * Km * cos(trim(7)),			    -Py(4) * Ct*sin(trim(8)) - Ct * Km * cos(trim(8)),			-Py(1) * Ct*trim(1) *cos(trim(5)) - Ct * Km * trim(1) *sin(trim(5)),   	        -Py(2) * Ct*trim(2) *cos(trim(6)) - Ct * Km * trim(2) *sin(trim(6)),		  	   -Py(3) * Ct*trim(3) *cos(trim(7)) + Ct * Km * trim(3) *sin(trim(7)), 	 		   -Py(4) * Ct*trim(4) *cos(trim(8)) + Ct * Km * trim(4) *sin(trim(8)),  		 0.0, 		 	    0.0, 		 	    0.0, 		 		 	q_bar*S*b*Cnr; 	
-%                              Ct * sin(trim(5)),	 										     Ct * sin(trim(6)),			   							      Ct * sin(trim(7)),											 Ct * sin(trim(8)),										     Ct * trim(1) *cos(trim(5)), 									     		     Ct * trim(2) *cos(trim(6)),											 			Ct * trim(3) *cos(trim(7)), 											 			Ct * trim(4) *cos(trim(8)),   												 0.0, 		 	    0.0, 		 	    0.0, 		 		 	0.0; 			
-%                              0.0,  			 												 0.0,  							   			 				  0.0,  													 	 0.0,	 													 0.0,		 		  					     					     			 0.0, 			      							 									0.0, 			    	  											   	 		   	0.0, 			           								 					 0.0, 		 	    0.0, 		 	    0.0, 		 		 	0.0; 			
-%                             -Ct * cos(trim(5)),	 						    			    -Ct * cos(trim(6)),			   							     -Ct * cos(trim(7)),											-Ct * cos(trim(8)),										     Ct * trim(1) *sin(trim(5)), 									     		     Ct * trim(2) *sin(trim(6)),											 			Ct * trim(3) *sin(trim(7)), 											 			Ct * trim(4) *sin(trim(8)),   								 				 0.0, 		 	    0.0, 		 	    0.0, 		 		 	0.0]; 			
-%     
+    eta_dot = [eta_dot_11 eta_dot_12 eta_dot_13;
+               eta_dot_21 eta_dot_22 eta_dot_23;
+               eta_dot_31 eta_dot_32 eta_dot_33];
 end
+
+
+
+
