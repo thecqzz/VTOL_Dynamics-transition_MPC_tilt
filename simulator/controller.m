@@ -41,14 +41,23 @@ classdef controller < handle
              
                  %[lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
                     
-                 g = 9.8066;
+                 tilt(1) = mult.State.ServoAngles(1);
+                 tilt(2) = mult.State.ServoAngles(2);
+                 tilt(3) = mult.State.ServoAngles(3);
+                 tilt(4) = mult.State.ServoAngles(4);
+                 
 
+                  x =  1.5 * sind(tilt(1)) + 1.5 * sind(tilt(2)) + 1.5 * sind(tilt(3)) + 1.5 * sind(tilt(4));
+                  z =  -1.5 * cosd(tilt(1)) -1.5 * cosd(tilt(2)) -1.5 * cosd(tilt(3)) -1.5 * cosd(tilt(4)) ;
 
-                 lin_accel = [1,0,0]';
+                  disp("x")
+                  disp(x)
+                  disp("z")
+                  disp(z)
 
-
+                 lin_accel = [x,0,z]';
                  tilt = [0,0,0,0]';
-                 rpy_des = [0,5,0]';
+                 rpy_des = [0,0,0]';
                  V_des = [0,0,0]';
 
 

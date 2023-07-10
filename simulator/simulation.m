@@ -188,7 +188,7 @@ end
 %             servoangles = [tilt1_des, tilt2_des];
 %%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            servoangles = [90,90,90,90]';
+            servoangles = [30,45,45,30]';
 
            obj.Multirotor.ChangeServoAngles(servoangles);
 
