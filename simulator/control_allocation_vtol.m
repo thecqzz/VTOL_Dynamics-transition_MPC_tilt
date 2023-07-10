@@ -6,16 +6,7 @@ classdef control_allocation_vtol < handle
         Method control_allocation_types % The control allocation method
 
 %%%
-        blending_air_speed = 22.194;
-        Transition_air_speed = 27.7425;
         Max_speed_sq
-        
-        actuator_sp_5 = 0;
-        actuator_sp_6 = 0;
-        actuator_sp_7 = 0;
-        actuator_sp_8 = 0;
-
-
 %%%
     end
     
