@@ -29,7 +29,6 @@ classdef multirotor < handle
         CollisionModel              % Model used for collision detection
         DynamicsMethod multirotor_dynamics_methods % The dynamics formulations
         
-
     end
     
     properties (SetAccess=protected, GetAccess=protected)
@@ -555,10 +554,8 @@ classdef multirotor < handle
             for i = 1 : obj.NumOfRotors
                NE_G(:, i) = obj.Rotors{i}.GetReactionMomentPerUnitInput();
             end
-
 % %             disp("set")
 % %             disp(NE_G)
-            
             % Calculate F matrix (related to body thrust moments)
             NE_F = zeros(3, obj.NumOfRotors);
             for i = 1 : obj.NumOfRotors
