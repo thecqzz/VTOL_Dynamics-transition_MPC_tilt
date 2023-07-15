@@ -172,23 +172,8 @@ for i = 1:obj.Multirotor.NumOfServos
             end
 end
 
-
-% for i = 1:obj.Multirotor.NumOfServos
-%             if abs(angleerr(i)) <= 1e-3
-%                 servoangles(i) = servoangles(i);
-%             elseif angleerr(i) > 1e-3
-%                 servoangles(i) = servoangles(i) - max_change(i);
-%             elseif angleerr(i) < -1e-3
-%                 servoangles(i) = servoangles(i) + max_change(i);
-%             end
-% end
-
-
-%%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%            
-%             servoangles = [tilt1_des, tilt2_des];
-%%%%%%%%%%%%%%%%%%%%%%%% instant apply %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
-            servoangles = [45,45,45,45]';
+          
+% % % % %             servoangles = [45,45,45,45]';
 
            obj.Multirotor.ChangeServoAngles(servoangles);
 
