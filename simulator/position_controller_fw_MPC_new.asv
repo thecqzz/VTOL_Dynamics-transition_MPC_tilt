@@ -288,7 +288,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             rpy_des = rad2deg(control(9:11));
 
             tilt_speed = control(5:8);
-            tilt_angle_des = getTilt_angle(Init_Tilt,tilt_speed,dt);
+            tilt_angle = getTilt_angle(Init_Tilt,tilt_speed,dt);
             
             disp(rpy_des)
             disp(thrust_MPC)
@@ -411,16 +411,16 @@ function Torque = CalcTorque(obj,Thrust,tilt,rotor_speed)
 % PD controller
 % body_rate_sp = diag([5,5,0])* (rpyMPC - rpy);
 % Torque = diag([5,5,0]) * (body_rate_sp - rpy_dot) + diag([2,2,0]) * (last_rpy_dot - rpy_dot);
-Torque = zeros(3, 1);
+T_r = zeros(3, 1);
 T_g = zeros(3,1);
 for i = 1:length(tilt)
     R_r2b = [sin(tilt(i)); 0 ;-cos(tilt(i))];
     r = obj.rotor_position(:,i);
     T = R_r2b*Thrust(i);
-    T_g =  T_g + obj.rotors.TorqueConstant*(-1)^(obj.RotorRotationDirections(i))*(rotor_speed(i))^2*R_r2b;
-    Torque = Torque + M_g + cross(r,T);
+    T_r = T_r + cross(r,T);
+    T_g =  T_g + obj.rot.TorqueConstant*(-1)^(obj.RotorRotationDirections(i))*(rotor_speed(i))^2*R_r2b;
 end
-
+Torque = T_r + T_g;
 end
 
 function [x_state, u0] = shift(T, x_state, u,f)
@@ -436,13 +436,16 @@ u0 = [u(2:size(u,1),:);u(size(u,1),:)];
 end
 
 function tilt_angle_bound = limit_tilt(obj,tilt_angle_not_bound)
-if tilt_angle_not_bound > obj.tilt_angle_max
-    tilt_angle_bound = obj.tilt_angle_max;
-elseif tilt_angle_not_bound < obj.tilt_angle_min
-    tilt_angle_bound = obj.tilt_angle_min;
+for i = 1:length(tilt_angle_not_bound)
+if tilt_angle_not_bound(i) > obj.tilt_angle_max
+    tilt_angle_not_bound(i) = obj.tilt_angle_max;
+elseif tilt_angle_not_bound(i) < obj.tilt_angle_min
+    tilt_angle_not_bound(i) = obj.tilt_angle_min;
 else
-    tilt_angle_bound = tilt_angle_not_bound;
+    tilt_angle_not_bound(i) = tilt_angle_not_bound(i);
 end
+end
+tilt_angle_bound = tilt_angle_not_bound;
 end
 
 function tilt_rk4 = getTilt_angle(tilt_angle,tilt_speed,h)
@@ -454,7 +457,6 @@ for i = 1:length(tilt_speed)
     k4 = (tilt_speed(i) + h*k3);
     tilt_rk4(i) = tilt_angle(i) + h*(k1 + 2*k2+ 2+k3 +k4)/6;
 end
-tilt_rk4 = rad2deg(tilt_rk4);
 end
 
 
