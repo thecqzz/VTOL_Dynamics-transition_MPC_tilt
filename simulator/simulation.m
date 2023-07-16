@@ -9,7 +9,7 @@ classdef simulation < handle
         I = 1;
         D = 0;
 
-        tilt_store = zeros(4,0)
+        tilt_store = zeros(4,1)
 
     end
 
@@ -116,7 +116,6 @@ classdef simulation < handle
                 return;
             end
             rpy_des = last_commands.DesiredRPY.Data;
-            rpy_dot_des = obj.Multirotor.State.LastEulerRate;
             euler_accel = obj.Controller.ControlAttitude(obj.Multirotor, rpy_des, [], [], time);
 
             last_commands.DesiredEulerAcceleration.Set(euler_accel, time);
@@ -161,7 +160,6 @@ for i = 1:obj.Multirotor.NumOfServos
             angleerr(i) = servoangles(i) - tilt_des(i);
 end
 
-
 for i = 1:obj.Multirotor.NumOfServos
             if abs(angleerr(i)) <= max_change
                 servoangles(i) = tilt_des(i);
@@ -171,9 +169,6 @@ for i = 1:obj.Multirotor.NumOfServos
                 servoangles(i) = servoangles(i) + max_change(i);
             end
 end
-
-          
-% % % % %             servoangles = [45,45,45,45]';
 
            obj.Multirotor.ChangeServoAngles(servoangles);
 

@@ -150,9 +150,9 @@ classdef control_allocation_vtol < handle
                 lb = abs_lb - actuator_trim;
                 ub = abs_ub - actuator_trim;
 
-
-
-                actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub);
+    
+                options = optimoptions('lsqlin','Algorithm','interior-point','Display','off');
+                actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub,[],options);
 
 % % %                 a = size(actuator_change);
 % % % 
@@ -162,8 +162,6 @@ classdef control_allocation_vtol < handle
 
 
 
-                disp("solved")
-                disp(actuator_change)
 
                 actuator_sp = actuator_trim + actuator_change;
      
