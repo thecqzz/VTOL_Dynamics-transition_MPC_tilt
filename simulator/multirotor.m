@@ -560,7 +560,7 @@ classdef multirotor < handle
             NE_F = zeros(3, obj.NumOfRotors);
             for i = 1 : obj.NumOfRotors
                 r = obj.Rotors{i}.Position;
-                F = obj.Rotors{i}.GetThrustForcePerUnitInput();
+                F = obj.Rotors{i}.GetThrustForcePerUnitInput();       
                 NE_F(:, i) = cross(r, F);
             end
             

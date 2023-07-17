@@ -8,10 +8,10 @@ classdef position_controller_fw_MPC_new < pid_controller
         WingSurfaceArea = 0.44;
         Mass;
         q_ref = [5, 0.1, 0.1]';
-        Q_v = diag([20;10;50])
+        Q_v = diag([10;100;5])
         Q_rpy = diag([10 20 10]);
         Q_rpy_dot = diag([10 10 10]);
-        Q_u = diag([0.0025 0.0025 0.0025 0.0025 1 1 1 1 10 10 10]);
+        Q_u = diag([0.0025 0.0025 0.0025 0.0025 100 100 100 100 10 10 10]);
         Q_t = 40;
         
         I_inv = diag([10.685,5.7465,4.6678]);
@@ -19,8 +19,8 @@ classdef position_controller_fw_MPC_new < pid_controller
              0  1   0;
              0  0   2];
         
-        U0 = zeros(25,11);
-        X0 = zeros(26,13); %, get solution TRAJECTORY
+        U0 = zeros(20,11);
+        X0 = zeros(21,13); %, get solution TRAJECTORY
         flag = 1;
         mpciter = 1;
         xx = [];
@@ -33,7 +33,7 @@ classdef position_controller_fw_MPC_new < pid_controller
     end
 
     properties
-        rotor_position = [[0.866;0.5;0],[0.866;-0.5;0],[-0.866;-0.5;0],[-0.866;0.5;0]];
+        rotor_position = [[0.866;0.5;0],[-0.866;0.5;0],[-0.866;-0.5;0],[0.866;-0.5;0]];
         RotorRotationDirections = [1, -1, 1, -1];
         rot = rotor;
     end
@@ -66,7 +66,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             dt = time - obj.LastTime;
             
             % Horizon
-            N = 25;
+            N = 20;
             
             % Velocity
             V_x = SX.sym('V_x');
@@ -290,10 +290,10 @@ classdef position_controller_fw_MPC_new < pid_controller
             tilt_speed = control(5:8);
             tilt_angle = getTilt_angle(Init_Tilt,tilt_speed,dt);
             tilt_angle_des = rad2deg(limit_tilt(obj,tilt_angle));
+            
             disp(rpy_des)
             disp(thrust_MPC)
-            
-            disp(rad2deg(tilt_angle_des))
+            disp(tilt_angle_des)
 
             obj.LastTime = time;
 
@@ -411,16 +411,16 @@ function Torque = CalcTorque(obj,Thrust,tilt,rotor_speed)
 % PD controller
 % body_rate_sp = diag([5,5,0])* (rpyMPC - rpy);
 % Torque = diag([5,5,0]) * (body_rate_sp - rpy_dot) + diag([2,2,0]) * (last_rpy_dot - rpy_dot);
-T_r = zeros(3, 1);
+T_r = zeros(3,1);
 T_g = zeros(3,1);
 for i = 1:length(tilt)
     R_r2b = [sin(tilt(i)); 0 ;-cos(tilt(i))];
     r = obj.rotor_position(:,i);
     T = R_r2b*Thrust(i);
     T_r = T_r + cross(r,T);
-    T_g =  T_g + obj.rot.TorqueConstant*(-1)^(obj.RotorRotationDirections(i))*(rotor_speed(i))^2*R_r2b;
+    %T_g =  T_g + obj.rot.TorqueConstant*(-1)^(obj.RotorRotationDirections(i))*(rotor_speed(i))^2*R_r2b;
 end
-Torque = T_r + T_g;
+Torque = T_r + T_g ;
 end
 
 function [x_state, u0] = shift(T, x_state, u,f)
@@ -449,7 +449,7 @@ tilt_angle_bound = tilt_angle_not_bound;
 end
 
 function tilt_rk4 = getTilt_angle(tilt_angle,tilt_speed,h)
-tilt_rk4 = zeros(4,1);
+%tilt_rk4 = zeros(4,1);
 for i = 1:length(tilt_speed)
     k1 = tilt_speed(i);
     k2 = (tilt_speed(i) + h*k1/2);
