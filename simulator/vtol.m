@@ -61,7 +61,7 @@ classdef vtol < multirotor
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
-%                          wrench(4:6) = wrench(4:6) + force(1:3);
+                          wrench(4:6) = wrench(4:6) + force(1:3);
             % lift only
 %                           wrench(6:6) = wrench(6:6) + force(3:3);
 
