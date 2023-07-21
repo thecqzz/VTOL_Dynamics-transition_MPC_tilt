@@ -1,6 +1,6 @@
 classdef controller < handle
     properties
-        ControlAllocation control_allocation_vtol
+        ControlAllocation control_allocation_vtol_2
         AttitudeController attitude_controller
         PositionController position_controller_fw_MPC_new
         HMFController hmf_controller
@@ -10,7 +10,7 @@ classdef controller < handle
     
     methods
         function obj = controller(mult)
-            obj.ControlAllocation = control_allocation_vtol(mult);
+            obj.ControlAllocation = control_allocation_vtol_2(mult);
             obj.AttitudeController = attitude_controller;
             obj.PositionController = position_controller_fw_MPC_new;
             obj.HMFController = hmf_controller;
@@ -42,7 +42,7 @@ classdef controller < handle
         function [lin_accel, rpy_des, tilt,V_des] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-                 [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+                  [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
                     
 %                  g = 9.8066;
 % 
