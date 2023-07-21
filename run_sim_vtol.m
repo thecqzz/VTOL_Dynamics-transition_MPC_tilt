@@ -30,6 +30,7 @@ vel = [0; 0; 0];
 rpy = [0; 0; 0];
 omega = [0; 0; 0];
 lastThrust = [0;0;0];
+
 sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 
 %% Get the controller response(s)

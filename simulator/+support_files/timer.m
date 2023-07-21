@@ -2,7 +2,7 @@ classdef timer < handle
     properties
         TotalTime = 5;                  % in secs
         PlantRate = 400;               % in Hertz
-        AttitudeControllerRate = 100;   % in Hertz
+        AttitudeControllerRate = 300;   % in Hertz
         PositionControllerRate = 100;    % in Hertz
         TrajectoryControllerRate = 100;  % in Hertz
     end

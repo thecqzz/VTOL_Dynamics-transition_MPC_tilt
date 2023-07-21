@@ -45,7 +45,7 @@ function m = vtol_custom(add_arm)
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for i = 1 : m.NumOfServos
-        m.Servos{i}.MaxRate = 10; % deg/s
+        m.Servos{i}.MaxRate = 45; % deg/s
         m.Servos{i}.SetMaxAngle();
         m.Servos{i}.SetTiltAngle(90);
     end

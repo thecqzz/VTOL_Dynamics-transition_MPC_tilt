@@ -26,7 +26,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         xx = [];
         tiltIntegral = 0
         tilt_angle_max = pi/2
-        tilt_angle_min = -0.122
+        tilt_angle_min = 0.122
         % steady fw speed  =  27.7425;
         blending_air_speed = 10;   
         Transition_air_speed = 23; 
@@ -246,7 +246,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 %%                 ref tracking
             for k = 1:N %new - set the reference to track
                 t_predict = time + (k-1)*dt; % predicted time instant
-                Vx_ref = 3*t_predict; Vy_ref = 0; Vz_ref = 0;
+                Vx_ref = 0; Vy_ref = 0; Vz_ref = 0;
      
                 if Vx_ref >= 20 % the trajectory end is reached
                     Vx_ref = 20; Vy_ref = 0; Vz_ref = 0;
@@ -281,14 +281,13 @@ classdef position_controller_fw_MPC_new < pid_controller
 
             obj.X0 = [x0(2:end,:);x0(end,:)];
             control = u(1,:)';
-
             thrust_MPC = control(1:4);
+
             accel_des = obj.getAccel_des(Init_Tilt,thrust_MPC);
 
             rpy_des = rad2deg(control(9:11));
 
             tilt_speed = control(5:8);
-
             tilt_angle = getTilt_angle(Init_Tilt,tilt_speed,dt);
             tilt_angle_des = rad2deg(limit_tilt(obj,tilt_angle));
             
@@ -440,14 +439,14 @@ tilt_angle_bound = tilt_angle_not_bound;
 end
 
 function tilt_rk4 = getTilt_angle(tilt_angle,tilt_speed,h)
-tilt_rk4 = zeros(4,1);
+%tilt_rk4 = zeros(4,1);
 for i = 1:length(tilt_speed)
     k1 = tilt_speed(i);
     k2 = (tilt_speed(i) + h*k1/2);
     k3 = (tilt_speed(i) + h*k2/2);
     k4 = (tilt_speed(i) + h*k3);
     tilt_rk4(i) = tilt_angle(i) + h*(k1 + 2*k2+ 2+k3 +k4)/6;
-end 
+end
 end
 
 
