@@ -246,7 +246,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 %%                 ref tracking
             for k = 1:N %new - set the reference to track
                 t_predict = time + (k-1)*dt; % predicted time instant
-                Vx_ref = 3*t_predict; Vy_ref = 0; Vz_ref = 0;
+                Vx_ref = 2*t_predict; Vy_ref = 0; Vz_ref = 0;
      
                 if Vx_ref >= 20 % the trajectory end is reached
                     Vx_ref = 20; Vy_ref = 0; Vz_ref = 0;
