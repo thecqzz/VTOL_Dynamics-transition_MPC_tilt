@@ -234,7 +234,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
 
             args.lbx(n_states*(N+1)+9:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+9:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4; %rpy_MPC
-            args.lbx(n_states*(N+1)+10:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+10:n_controls:n_states*(N+1)+n_controls*N,1) = pi/10;
+            args.lbx(n_states*(N+1)+10:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+10:n_controls:n_states*(N+1)+n_controls*N,1) = 0.15;
             args.lbx(n_states*(N+1)+11:n_controls:n_states*(N+1)+n_controls*N,1) = -pi/4; args.ubx(n_states*(N+1)+11:n_controls:n_states*(N+1)+n_controls*N,1) = pi/4;
 
             

@@ -1,16 +1,15 @@
 classdef controller < handle
     properties
-        ControlAllocation control_allocation_vtol_2
+        ControlAllocation control_allocation_vtol
         AttitudeController attitude_controller
         PositionController position_controller_fw_MPC_new
         HMFController hmf_controller
-
-        Max_speed_sq
+        Max_speed_sq 
     end
     
     methods
         function obj = controller(mult)
-            obj.ControlAllocation = control_allocation_vtol_2(mult);
+            obj.ControlAllocation = control_allocation_vtol(mult);
             obj.AttitudeController = attitude_controller;
             obj.PositionController = position_controller_fw_MPC_new;
             obj.HMFController = hmf_controller;
