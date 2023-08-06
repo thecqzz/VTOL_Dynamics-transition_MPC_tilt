@@ -9,8 +9,6 @@ classdef simulation < handle
         I = 1;
         D = 0;
 
-        tilt_store = zeros(4,1)
-
     end
 
     properties(Constant)
@@ -96,14 +94,14 @@ classdef simulation < handle
 
             euler_acc_des = last_commands.DesiredEulerAcceleration.Data;
             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
-            [rotor_speed_squared, deflections,~] = obj.Controller.ControlAcceleration(obj.Multirotor, lin_acc_des, euler_acc_des);
+            [rotor_speed_squared, deflections, tilt_out,~] = obj.Controller.ControlAcceleration(obj.Multirotor, lin_acc_des, euler_acc_des);
             plantinput.RotorSpeedsSquared = rotor_speed_squared;
             plantinput.AileronLeftRate = deflections(1);
             plantinput.ElevatorRate = deflections(2);
             plantinput.RudderRate = deflections(3);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-            plantinput.ServoAngles = obj.tilt_store';
+            plantinput.ServoAngles = tilt_out;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             last_commands.PlantInputCommand.Set(plantinput, time);
@@ -235,7 +233,6 @@ function NextStepPositionController(obj, time)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
 %             plantinput.ServoAngles = [tilt,tilt]';
-            obj.tilt_store = tilt;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             lin_accel_log_i = rib*lin_accel;

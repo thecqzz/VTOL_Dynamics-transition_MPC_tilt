@@ -1,6 +1,6 @@
 classdef controller < handle
     properties
-        ControlAllocation control_allocation_vtol_2
+        ControlAllocation control_allocation_vtol
         AttitudeController attitude_controller
         PositionController position_controller_fw_MPC_new
         HMFController hmf_controller
@@ -10,24 +10,25 @@ classdef controller < handle
     
     methods
         function obj = controller(mult)
-            obj.ControlAllocation = control_allocation_vtol_2(mult);
+            obj.ControlAllocation = control_allocation_vtol(mult);
             obj.AttitudeController = attitude_controller;
             obj.PositionController = position_controller_fw_MPC_new;
             obj.HMFController = hmf_controller;
         end
         
-        function [rotor_speeds_squared, deflections, saturated] = ControlAcceleration(obj, mult, lin_acc_des, euler_acc_des)
-            [rotor_speeds_squared, deflections,saturated] = obj.ControlAllocation.CalcActuators(mult, lin_acc_des, euler_acc_des);
+        function [rotor_speeds_squared, deflections,  tilt_out, saturated] = ControlAcceleration(obj, mult, lin_acc_des, euler_acc_des)
+            [rotor_speeds_squared, deflections, tilt_out, saturated] = obj.ControlAllocation.CalcActuators(mult, lin_acc_des, euler_acc_des);
 
              obj.Max_speed_sq = cell2mat(cellfun(@(s)s.MaxSpeedSquared, mult.Rotors, 'uni', 0));
 
              
                 rotor_speeds_squared = rotor_speeds_squared .* obj.Max_speed_sq;
 
-%                 disp(deflections)
+% % 
+% %                 disp("tilt_out")
+% %                 disp(tilt_out)
 
-%                 deflections = [0,0,0,0]';
-%                 rotor_speeds_squared = [0,0,0.01,0]';
+
   
         end
         
@@ -42,23 +43,23 @@ classdef controller < handle
         function [lin_accel, rpy_des, tilt,V_des] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-                  [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+%                   [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
                     
-%                  g = 9.8066;
-% 
+                 g = 9.8066;
+ 
 %                  tilt(1) = mult.State.ServoAngles(1);
 %                  tilt(2) = mult.State.ServoAngles(2);
 %                  tilt(3) = mult.State.ServoAngles(3);
 %                  tilt(4) = mult.State.ServoAngles(4);
-%                  
-% 
+                 
+
 %                   x =  1.5 * sind(tilt(1)) + 1.5 * sind(tilt(2)) + 1.5 * sind(tilt(3)) + 1.5 * sind(tilt(4));
 %                   z =  -1.5 * cosd(tilt(1)) -1.5 * cosd(tilt(2)) -1.5 * cosd(tilt(3)) -1.5 * cosd(tilt(4)) ;
-% 
-%                  lin_accel = [x,0,z]';
-%                  tilt = [0,0,0,0]';
-%                  rpy_des = [0,0,0]';
-%                  V_des = [0,0,0]';
+
+                 lin_accel = [5,0,-5]';
+                 tilt = [0,0,0,0]';
+                 rpy_des = [0,0,0]';
+                 V_des = [0,0,0]';
 %                  disp("the correct answer should be")
 %                  disp(lin_accel + [0,0,g]')
 
