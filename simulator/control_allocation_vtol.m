@@ -151,7 +151,8 @@ classdef control_allocation_vtol < handle
                 actuator_trim(1) = multirotor.State.RotorSpeeds(1)/1.2194e+6;
                 actuator_trim(2) = multirotor.State.RotorSpeeds(2)/1.2194e+6;
                 actuator_trim(3) = multirotor.State.RotorSpeeds(3)/1.2194e+6;
-                actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;            
+                actuator_trim(4) = multirotor.State.RotorSpeeds(4)/1.2194e+6;     
+                
 
                 ratio_1 = (pi / 2) * multirotor.State.ServoAngles(1) / 90;
                 ratio_2 = (pi / 2) * multirotor.State.ServoAngles(2) / 90;
@@ -161,9 +162,9 @@ classdef control_allocation_vtol < handle
 
 
                 actuator_trim(5) = ratio_1; 
-                actuator_trim(8) = ratio_1;
-                actuator_trim(7) = ratio_2;
-                actuator_trim(6) = ratio_2;
+                actuator_trim(8) = ratio_2;
+                actuator_trim(7) = ratio_3;
+                actuator_trim(6) = ratio_4;
 
                 actuator_trim(9)  = obj.actuator_sp_9;
                 actuator_trim(10) = obj.actuator_sp_10;
@@ -173,9 +174,6 @@ classdef control_allocation_vtol < handle
                 effectiveness_matrix = calc_eff_mat(q_bar, actuator_trim);
                 control_trim = effectiveness_matrix * actuator_trim;
                 actuator_sp = actuator_trim + pinv(effectiveness_matrix) * (control_sp - control_trim);
-
-                disp("actuator_sp")
-                disp(actuator_sp)
 
                 maximum_rotor = max(actuator_sp(1:4));
 
