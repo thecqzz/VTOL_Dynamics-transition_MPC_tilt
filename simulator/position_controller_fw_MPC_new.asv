@@ -351,7 +351,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 
             force = R_WB * [-drag; lateral;-lift];
         end
-        
+        T_body
         
         function accel = CalcAccel(obj,F_a,T,rpy,tilt)
             n_rotor = length(tilt);
@@ -365,7 +365,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             
             R_i2b = GetRotationMatrix(rpy(1),rpy(2),rpy(3));
             R_b2i = R_i2b';
-            F_tot = F_a + T_body;
+            F_tot = F_a + ;
             F_Inertial = R_b2i * F_tot;
             accel = F_Inertial / obj.Mass;
         end
