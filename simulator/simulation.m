@@ -97,7 +97,11 @@ classdef simulation < handle
             euler_acc_des = last_commands.DesiredEulerAcceleration.Data;
             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
             [rotor_speed_squared, deflections,~] = obj.Controller.ControlAcceleration(obj.Multirotor, lin_acc_des, euler_acc_des);
-            plantinput.RotorSpeedsSquared = rotor_speed_squared;
+%             plantinput.RotorSpeedsSquared = rotor_speed_squared;
+
+%             [wrench, aeromoment,rotor_speed_squared] = obj.Multirotor.CalcGeneratedWrench(plantinput);
+%             plantinput.RotorSpeedsSquared = rotor_speed_squared;
+            
             plantinput.AileronLeftRate = deflections(1);
             plantinput.ElevatorRate = deflections(2);
             plantinput.RudderRate = deflections(3);
@@ -388,11 +392,18 @@ function NextStepPositionController(obj, time)
             % Calculate the next state of the robot if there are no collisions
             if isa(obj.Multirotor, 'vtol')
 
-                wrench = obj.Multirotor.CalcGeneratedWrench(plantinput);
+%                 wrench = obj.Multirotor.CalcGeneratedWrench(plantinput);
 
+                [wrench, aeromoment,rotor_speed_squared] = obj.Multirotor.CalcGeneratedWrench(plantinput);
+                plantinput.Aeromoment = aeromoment;
+% %                 plantinput.RotorSpeedsSquared = rotor_speed_squared;
+
+% %                 disp('it works')
+% %                 disp(plantinput.RotorSpeedsSquared)
 
             else
-                wrench = obj.Multirotor.CalcGeneratedWrench(plantinput);
+                 wrench = obj.Multirotor.CalcGeneratedWrench(plantinput);
+
 
 
             end

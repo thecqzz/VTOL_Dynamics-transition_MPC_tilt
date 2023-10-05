@@ -179,13 +179,34 @@ classdef multirotor < handle
             
             
             RBI = obj.GetRotationMatrix();
+            %%
+            obj.I = zeros(3,3);
+            %%
             
+%              physics.Gravity = [0,0,0]';
+
             F_x = [obj.GetGravityMoment(RBI) - cross(obj.State.Omega, obj.I * obj.State.Omega);
                    obj.TotalMass * physics.Gravity];
             
             J_x = [obj.NE_M; RBI' * obj.NE_L];
+
+            plantinput.RotorSpeedsSquared = [0;0;0;0];
                         
             wrench = F_x + J_x * plantinput.RotorSpeedsSquared;
+
+%             disp('F_x')
+%             disp(F_x)
+% % % %             disp('plantinput.RotorSpeedsSquared in multi')
+% % % %             disp(plantinput.RotorSpeedsSquared)
+
+%             disp(obj.I)
+            
+%              wrench(3,1) = 1;
+%             disp('wrench')
+%             disp(wrench)
+
+%             wrench(1:3) = 0;
+
   
         end
 

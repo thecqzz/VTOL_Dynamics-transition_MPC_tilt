@@ -19,16 +19,40 @@ c = controllers.vtol_controllers(m);
 % Define the simulation object
 sim = simulation(m, c, w);
 
+
+
+
+%%
+
+alpha = 10; % degree
+[V,phi,yaw_rate] = get_vel_phi(alpha);
+
+
+% yaw_rate = 0.1;
+% phi = 10;
+theta = alpha;
+Euler_rate = [0     0    yaw_rate]';
+
+
+Euler2PQR_matrix = [1       0           -sind(theta);
+                    0       cosd(phi)   sind(phi)*cosd(theta)
+                    0       -sind(phi)   cosd(phi)*cosd(theta)];
+
+PQR = Euler2PQR_matrix * Euler_rate;
+
+
+
+
 %% Initial multirotor state
 
 pos = [0; 0; -200];
 
 % vel = [17.3005; 0; 0];
 
-vel = [0; 0; 0];
-
-rpy = [0; 0; 0];
-omega = [0; 0; 0];
+vel = [V; 0; 0];
+rpy = [phi; theta; 0];
+% omega = [-0.024; 0.052; 0.128];
+omega = PQR;
 lastThrust = [0;0;0];
 
 sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
@@ -49,18 +73,23 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
 % Or simulate position response
-sim.SetTotalTime(10);
+sim.SetTotalTime(100);
 figure;
 sim.SimulatePositionResponse([600; 0; -200], 0, true);
 
 %% Draw Additional plots
 % graphics.PlotSignalsByName(2, {'laileronp', 'laileronr', 'raileronp', 'raileronr'});
+
 graphics.PlotSignalsByName(3, {'pos', 'vel', 'accel', 'rpy', 'euler deriv', 'ang accel', 'sat'}, false, true);
 % graphics.PlotSignalsByName(4, {'servo', 'inward', 'sideward'}, false, true);
+
 graphics.PlotSignalsByName(4, {'servo'}, false, true);
+
 %graphics.PlotSignalsByName(1, {'accel'}, false, true);
 % graphics.PlotSignalsByName(2, {'alpha', 'beta', 'airspeed'});
 % graphics.PlotSignalsByName(2, {'omega','airspeed'});
+
+graphics.PlotSignalsByName(1,{'pos'},false,true);
 
 %% Animate the result
 

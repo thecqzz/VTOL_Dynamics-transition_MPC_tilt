@@ -16,32 +16,34 @@ classdef controller < handle
         end
         
         function [rotor_speeds_squared, deflections, saturated] = ControlAcceleration(obj, mult, lin_acc_des, euler_acc_des)
-            [rotor_speeds_squared, deflections,saturated] = obj.ControlAllocation.CalcActuators(mult, lin_acc_des, euler_acc_des);
+%             [rotor_speeds_squared, deflections,saturated] = obj.ControlAllocation.CalcActuators(mult, lin_acc_des, euler_acc_des);
+% 
+%              obj.Max_speed_sq = cell2mat(cellfun(@(s)s.MaxSpeedSquared, mult.Rotors, 'uni', 0));
+% 
+%              
+%                 rotor_speeds_squared = rotor_speeds_squared .* obj.Max_speed_sq;
 
-             obj.Max_speed_sq = cell2mat(cellfun(@(s)s.MaxSpeedSquared, mult.Rotors, 'uni', 0));
 
-             
-                rotor_speeds_squared = rotor_speeds_squared .* obj.Max_speed_sq;
-
-%                 disp(deflections)
-
-%                 deflections = [0,0,0,0]';
-%                 rotor_speeds_squared = [0,0,0.01,0]';
+%                  disp('saturated')
+%                  disp(saturated)
+                 saturated = 0;
+                 deflections = [0,0,0,0]';
+                 rotor_speeds_squared = [0,0,0,0]';
   
         end
         
         function euler_accel = ControlAttitude(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, dt)
 
-                  euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
+%                   euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
                 
-%                     euler_accel = [0,0,0]';
+                     euler_accel = [0,0,0]';
         end
 
 
         function [lin_accel, rpy_des, tilt,V_des] = ControlPosition(obj, mult, pos_des, yaw_des, vel_des, acc_des, dt)
 
              
-                  [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
+%                   [lin_accel,rpy_des, tilt,V_des] = obj.PositionController.CalculateControlCommand(mult, pos_des, vel_des, yaw_des, acc_des, dt);
                     
 %                  g = 9.8066;
 % 
@@ -54,12 +56,12 @@ classdef controller < handle
 %                   x =  1.5 * sind(tilt(1)) + 1.5 * sind(tilt(2)) + 1.5 * sind(tilt(3)) + 1.5 * sind(tilt(4));
 %                   z =  -1.5 * cosd(tilt(1)) -1.5 * cosd(tilt(2)) -1.5 * cosd(tilt(3)) -1.5 * cosd(tilt(4)) ;
 % 
-%                  lin_accel = [x,0,z]';
-%                  tilt = [0,0,0,0]';
-%                  rpy_des = [0,0,0]';
-%                  V_des = [0,0,0]';
-%                  disp("the correct answer should be")
-%                  disp(lin_accel + [0,0,g]')
+                 lin_accel = [0,0,0]';
+                 tilt = [0,0,0,0]';
+                 rpy_des = [0,0,0]';
+                 V_des = [0,0,0]';
+
+
 
 
         end

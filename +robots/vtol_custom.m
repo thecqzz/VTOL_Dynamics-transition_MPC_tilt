@@ -12,11 +12,11 @@ function m = vtol_custom(add_arm)
     RotorDihedralAngle = 0;
 
 
-% %                   RotorSidewardAngle = [30, 30, -30, -30]; 
-% %                   RotorInwardAngle = [-90, 90, 90, -90];
+                  RotorSidewardAngle = [30, 30, -30, -30]; 
+                  RotorInwardAngle = [-90, 90, 90, -90];
 
-               RotorSidewardAngle = 0; 
-               RotorInwardAngle = 0;
+%                RotorSidewardAngle = 0; 
+%                RotorInwardAngle = 0;
 
     m = vtol(RotorPlacementAngles, RotorRotationDirections);
     m.SetRotorAngles(RotorInwardAngle, RotorSidewardAngle, RotorDihedralAngle);
