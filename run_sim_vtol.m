@@ -83,13 +83,15 @@ sim.SimulatePositionResponse([600; 0; -200], 0, true);
 graphics.PlotSignalsByName(3, {'pos', 'vel', 'accel', 'rpy', 'euler deriv', 'ang accel', 'sat'}, false, true);
 % graphics.PlotSignalsByName(4, {'servo', 'inward', 'sideward'}, false, true);
 
-graphics.PlotSignalsByName(4, {'servo'}, false, true);
+% graphics.PlotSignalsByName(4, {'servo'}, false, true);
 
 %graphics.PlotSignalsByName(1, {'accel'}, false, true);
 % graphics.PlotSignalsByName(2, {'alpha', 'beta', 'airspeed'});
 % graphics.PlotSignalsByName(2, {'omega','airspeed'});
 
-graphics.PlotSignalsByName(1,{'pos'},false,true);
+
+%% plot circle 
+graphics.PlotSignalsXY(1,{'pos'},false,true);
 
 %% Animate the result
 

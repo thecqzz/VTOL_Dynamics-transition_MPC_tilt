@@ -29,8 +29,7 @@ classdef graphics
             fix_plot_limits({t}, {response.Values, response.DesiredValue});
             drawnow;
         end
-
-function h = PlotSignalsByName(cols, signals, allinone, gridon, y_label)
+        function h = PlotSignalsXY(cols, signals, allinone, gridon, y_label)
             if nargin < 5
                 y_label = '';
             end
@@ -43,7 +42,7 @@ function h = PlotSignalsByName(cols, signals, allinone, gridon, y_label)
             if ~iscell(signals)
                 signals = {signals};
             end
-            
+
             n_sig = length(signals);
             X = cell(n_sig, 1);
             T = cell(n_sig, 1);
@@ -51,7 +50,32 @@ function h = PlotSignalsByName(cols, signals, allinone, gridon, y_label)
             for i = 1 : n_sig
                 [X{i}, T{i}, L{i}] = logger.GetField(signals{i});
             end
-            
+
+            %h = graphics.PlotSignalsFromData(cols, X, T, L, allinone, gridon, y_label);
+            h = graphics.PlotPosfromXY(cols, X, T, L, allinone, gridon, y_label);
+        end
+        function h = PlotSignalsByName(cols, signals, allinone, gridon, y_label)
+            if nargin < 5
+                y_label = '';
+            end
+            if nargin < 4
+                gridon = false;
+            end
+            if nargin < 3
+                allinone = false;
+            end
+            if ~iscell(signals)
+                signals = {signals};
+            end
+
+            n_sig = length(signals);
+            X = cell(n_sig, 1);
+            T = cell(n_sig, 1);
+            L = cell(n_sig, 1);
+            for i = 1 : n_sig
+                [X{i}, T{i}, L{i}] = logger.GetField(signals{i});
+            end
+
             h = graphics.PlotSignalsFromData(cols, X, T, L, allinone, gridon, y_label);
 %             h = graphics.PlotPosfromXY(cols, X, T, L, allinone, gridon, y_label);
         end
@@ -144,7 +168,7 @@ function h = PlotSignalsByName(cols, signals, allinone, gridon, y_label)
         end
 
 
-%%
+        %%
 
         function h = PlotPosfromXY(cols, data, times, labels, allinone, gridon, y_label)
             if nargin < 7
