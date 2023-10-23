@@ -29,12 +29,13 @@ classdef controller < handle
                  saturated = 0;
                  deflections = [0,0,0,0]';
                  rotor_speeds_squared = [0,0,0,0]';
+
   
         end
         
         function euler_accel = ControlAttitude(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, dt)
 
-%                   euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
+                   euler_accel = obj.AttitudeController.CalculateControlCommand(mult, rpy_des, [], [], dt);
                 
                      euler_accel = [0,0,0]';
         end

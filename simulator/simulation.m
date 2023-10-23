@@ -10,7 +10,8 @@ classdef simulation < handle
         D = 0;
 
         tilt_store = zeros(4,1)
-
+        
+        rotor
     end
 
     properties(Constant)
@@ -97,10 +98,10 @@ classdef simulation < handle
             euler_acc_des = last_commands.DesiredEulerAcceleration.Data;
             plantinput = plant_input(obj.Multirotor.NumOfRotors, obj.Multirotor.NumOfServos);
             [rotor_speed_squared, deflections,~] = obj.Controller.ControlAcceleration(obj.Multirotor, lin_acc_des, euler_acc_des);
-%             plantinput.RotorSpeedsSquared = rotor_speed_squared;
+%              plantinput.RotorSpeedsSquared = rotor_speed_squared;
 
 %             [wrench, aeromoment,rotor_speed_squared] = obj.Multirotor.CalcGeneratedWrench(plantinput);
-%             plantinput.RotorSpeedsSquared = rotor_speed_squared;
+            plantinput.RotorSpeedsSquared = obj.rotor;
             
             plantinput.AileronLeftRate = deflections(1);
             plantinput.ElevatorRate = deflections(2);
@@ -396,7 +397,7 @@ function NextStepPositionController(obj, time)
 
                 [wrench, aeromoment,rotor_speed_squared] = obj.Multirotor.CalcGeneratedWrench(plantinput);
                 plantinput.Aeromoment = aeromoment;
-% %                 plantinput.RotorSpeedsSquared = rotor_speed_squared;
+                obj.rotor = rotor_speed_squared;
 
 % %                 disp('it works')
 % %                 disp(plantinput.RotorSpeedsSquared)

@@ -1,12 +1,13 @@
 function [Air_speed,phi,yaw_rate] = get_vel_phi(a)
     %% Properties
     m = 7.427;
-    g = 9.81;
+   
+    g = physics.Gravity(3);
     R = 200;
     y = 0;   % yaw
     b = 0;   % sideslip angle
-    c_z = 0.35 + 0.11 * deg2rad(a); %C
-    c_d = 0.01 + 0.2 * deg2rad(a) * deg2rad(a); %C_D,a from paper 
+    c_z = 0.35 + 0.11 * a; %C
+    c_d = 0.03 + 0.2 * a * a; %C_D,a from paper 
     WingSurfaceArea = 0.44; % in m^2
     air_density = 1.229;
     ThrustConstant = 1.08105e-4 / 5;    

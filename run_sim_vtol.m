@@ -24,9 +24,8 @@ sim = simulation(m, c, w);
 
 %%
 
-alpha = 10; % degree
+alpha = 0; % degree
 [V,phi,yaw_rate] = get_vel_phi(alpha);
-
 
 % yaw_rate = 0.1;
 % phi = 10;

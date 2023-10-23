@@ -97,11 +97,7 @@ classdef vtol < multirotor
         function [force,rotor_speed_squared] = CalcAerodynamicForce(obj, Va_i)
 
             [rbw, alpha, ~] = obj.CalcWindToBodyRotation(Va_i);
-            alpha = deg2rad(alpha);
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %             disp('alpha')
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %             disp(alpha)
-
-
+            
             rbi = obj.GetRotationMatrix();
             rib = rbi';
 
@@ -117,6 +113,9 @@ classdef vtol < multirotor
 
             c_z = C_Z0 + C_Za * alpha;
             c_x = C_D0 + C_Da * alpha * alpha;
+
+%             disp('used alpha')
+%             disp(alpha)
 
             drag = q_bar * obj.WingSurfaceArea * c_x;
             lateral = q_bar * obj.WingSurfaceArea * c_y;
@@ -134,7 +133,6 @@ classdef vtol < multirotor
             lateral = coeff * lateral;
             lift = coeff * lift;
             
-             drag = 0;
 % % %             disp('drag')
 % % %             disp(drag)
 % % % 
@@ -152,18 +150,15 @@ classdef vtol < multirotor
             for i = 1 : obj.NumOfRotors
                 rotor_speed_squared(i) = (-force(1) + BF_weight(1)) / (obj.NumOfRotors * obj.Rotors{i}.ThrustConstant);
             end
+            
+%             disp('rotor_speed_squared calculated')
+%             disp(rotor_speed_squared)
 
 %             rotor_speed_squared = [0,0,0,0]';
                 
 
-            disp('rotor_speed_squared in vtol.m')
-            disp(rotor_speed_squared)
-
-%             disp(force)
-%%         
-
-
-
+%             disp('rotor_speed_squared in vtol.m')
+%             disp(rotor_speed_squared)
 
 
 
@@ -224,12 +219,13 @@ classdef vtol < multirotor
             %air velocity Va_i
             Va_b = rbi * Va_i;
 
-
+            disp('Va_b')
+            disp(Va_b)
 
             %Calculate angle of attack a and sideslip angle b
             %             a = CalcAngleOfAttack(Va_b) + obj.AngleOfIncident;
             a = CalcAngleOfAttack(Va_b) ;
-            %             a = 10;
+
             b = 0;
 
             %Rotation matrix from body to wind
@@ -282,6 +278,15 @@ end
 function alpha = CalcAngleOfAttack(Va_b)
 
 alpha = atand(Va_b(3)/Va_b(1));
+
+% disp('1')
+% disp(Va_b(1))
+% disp('2')
+% disp(Va_b(2))
+% disp('3')
+% disp(Va_b(3))
+% 
+% disp(alpha)
 
 if isnan(alpha)
     alpha = 0;

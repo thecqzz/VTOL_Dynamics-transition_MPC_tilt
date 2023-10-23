@@ -189,15 +189,13 @@ classdef multirotor < handle
                    obj.TotalMass * physics.Gravity];
             
             J_x = [obj.NE_M; RBI' * obj.NE_L];
-
-            plantinput.RotorSpeedsSquared = [0;0;0;0];
                         
             wrench = F_x + J_x * plantinput.RotorSpeedsSquared;
 
 %             disp('F_x')
 %             disp(F_x)
-% % % %             disp('plantinput.RotorSpeedsSquared in multi')
-% % % %             disp(plantinput.RotorSpeedsSquared)
+%             disp('plantinput.RotorSpeedsSquared in multi')
+%             disp(plantinput.RotorSpeedsSquared)
 
 %             disp(obj.I)
             
@@ -278,8 +276,6 @@ classdef multirotor < handle
    
             F = J_x * plantinput.RotorSpeedsSquared;
             
-% %             disp("plantinput")
-% %             disp(plantinput.RotorSpeedsSquared)
 
             T_Inertial = F(4:6);
             T_Body = RBI * T_Inertial;
