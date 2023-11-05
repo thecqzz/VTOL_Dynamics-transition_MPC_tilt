@@ -179,8 +179,7 @@ classdef multirotor < handle
             
             
             RBI = obj.GetRotationMatrix();
-            
-            F_x = [obj.GetGravityMoment(RBI) - cross(obj.State.Omega, obj.I * obj.State.Omega);
+            F_x = [obj.GetGravityMoment(RBI) - cross(obj.State.Omega, zeros(3,3) * obj.State.Omega);
                    obj.TotalMass * physics.Gravity];
             
             J_x = [obj.NE_M; RBI' * obj.NE_L];

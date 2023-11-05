@@ -62,8 +62,7 @@ classdef vtol < multirotor
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
                           wrench(4:6) = wrench(4:6) + force(1:3);
-            % lift only
-%                            wrench(6:6) = wrench(6:6) + force(3:3);
+
 
 
         end
@@ -98,47 +97,17 @@ classdef vtol < multirotor
 
             q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
 
-            c_y = 0; % TODO: Later
-% 
-%             C_Z0 = 0.35;
-%             C_Za = 0.11;
-%             C_D0 = 0.01;
-%             C_Da = 0.0002;
-% 
-%             alphaR = deg2rad(alpha);
-%             alpha_plusR = deg2rad(15);
-%             alpha_minusR = deg2rad(9);
-% 
-%             k_plus = 20;
-%             k_minus = 800;
-% 
-%             c_zl = C_Z0 + C_Za .* alpha;
-%             c_dl = C_D0 + C_Da .* alpha .* alpha;
-% 
-%             c_1 = 1;
-%             c_0 = 0.025;
-% 
-%             c_zs = c_1 * sind(2*alpha);
-%             c_ds = c_0 + 2*c_1*sind(alpha).^2;
-% 
-% 
-%             if alphaR >= 0 & alphaR <= pi/2
-%                 coeff = (1 + tanh(k_plus*(alpha_plusR.^2 - alphaR^2)))/(1 + tanh(k_plus * alpha_plusR.^2));
-%             else
-%                 coeff = (1 + tanh(k_minus*(alpha_minusR.^2 - alphaR.^2)))/(1 + tanh(k_minus * alpha_minusR.^2));
-%             end
-% 
-%             c_z = coeff .* c_zl + (1 - coeff).*c_zs;
-%             c_x = coeff .* c_dl + (1 - coeff).*c_ds;
+            c_y = 0;
 
 
-                        C_Z0 = 0.35;
-                        C_Za = 0.11;
-                        C_D0 = 0.03;
-                        C_Da = 0.2;
-            
-                        c_z = C_Z0 + C_Za * alpha;
-                        c_x = C_D0 + C_Da * alpha * alpha;
+
+            C_Z0 = 0.35;
+            C_Za = 0.11;
+            C_D0 = 0.03;
+            C_Da = 0.2;
+
+            c_z = C_Z0 + C_Za * alpha;
+            c_x = C_D0 + C_Da * alpha * alpha;
 
             drag = q_bar * obj.WingSurfaceArea * c_x;
             lateral = q_bar * obj.WingSurfaceArea * c_y;

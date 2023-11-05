@@ -238,7 +238,7 @@ function NextStepPositionController(obj, time)
             obj.tilt_store = tilt;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            lin_accel_log_i = rib*lin_accel;
+            %lin_accel_log_i = rib*lin_accel;
 
 
             last_commands.DesiredRPY.Set(rpy_des, time);
