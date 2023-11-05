@@ -482,10 +482,6 @@ end
 end
 
 
-
-
-_
-
 %% piecewise blending
 function foo = blend(f1,f2,location,distance)
 
