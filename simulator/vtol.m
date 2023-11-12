@@ -95,13 +95,25 @@ classdef vtol < multirotor
 
 %             wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
 
+%             F_x = [obj.GetGravityMoment(RBI) - cross(obj.State.Omega, zeros(3,3) * obj.State.Omega);
+%                    obj.TotalMass * physics.Gravity];
+            
 
-            wrench = test;
+            rbi = obj.GetRotationMatrix();
+            rib = rbi';
+            cal_force = rib*test(4:6);
+
+            Grav_f = [0; 0; 9.80665] * 7.427;
+
+
+            wrench = [test(1:3);cal_force+Grav_f];
+% 
+%             wrench = [0,1,0,0,0,0]';
          
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
-                          wrench(4:6) = wrench(4:6) + force(1:3);
+            wrench(4:6) = wrench(4:6) + force(1:3);
 
             disp('calculated wrench')
             disp(wrench)
