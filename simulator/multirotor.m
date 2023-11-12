@@ -183,6 +183,12 @@ classdef multirotor < handle
                    obj.TotalMass * physics.Gravity];
             
             J_x = [obj.NE_M; RBI' * obj.NE_L];
+
+%             disp('multirotor_wrench_J_x')
+%             disp(J_x)
+% 
+%             disp('multirotor_calculation')
+%             disp(J_x * plantinput.RotorSpeedsSquared)
                         
             wrench = F_x + J_x * plantinput.RotorSpeedsSquared;
   

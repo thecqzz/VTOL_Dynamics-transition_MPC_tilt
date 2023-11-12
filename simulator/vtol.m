@@ -57,11 +57,23 @@ classdef vtol < multirotor
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% start new lift here %%%%%%%%%%%%%%%%%%
 
             % add moment
+
+            disp('wrench')
+            disp(wrench(1:3))
+
             wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
+
+            disp('obj.CalcDeflectionMoment')
+            disp(obj.CalcDeflectionMoment(obj.State.Velocity, plantinput))
+            
+
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
                           wrench(4:6) = wrench(4:6) + force(1:3);
+
+            disp('calculated wrench')
+            disp(wrench)
 
 
 
@@ -126,7 +138,13 @@ classdef vtol < multirotor
             %% frame change
             rbi = obj.GetRotationMatrix();
             rib = rbi';
+
+            lift = 0;
+            drag = 0;
+
             force = rib * rbw * [-drag; lateral; -lift];
+
+
     
         end
 
@@ -171,6 +189,13 @@ classdef vtol < multirotor
             roll_moment = q_bar * obj.S_A * obj.C_A * plantinput.AileronLeftRate;
             pitch_moment = q_bar * obj.S_E * obj.C_E * plantinput.ElevatorRate;
             yaw_moment = q_bar * obj.S_R * obj.C_R * plantinput.RudderRate;
+             
+%             disp('1')
+%             disp(obj.S_A)
+%             disp('2')
+%             disp(obj.S_E)
+%             disp('3')
+%             disp(obj.S_R)
 
             moment = [roll_moment; pitch_moment; yaw_moment];
         end

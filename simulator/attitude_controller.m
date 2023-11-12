@@ -12,9 +12,21 @@ classdef attitude_controller < pid_controller
 
         function euler_accel = CalculateControlCommand(obj, mult, rpy_des, rpy_dot_des, eul_acc_des, time)%time
 
-            %             obj.P = 30.*eye(3);
-            %             obj.I = 1.*eye(3);
-            %             obj.D = 10.*eye(3);
+%                         obj.P = 20.*eye(3);
+%                         obj.I = 0.*eye(3);
+%                         obj.D = 10.*eye(3);
+% 
+% 
+% 
+%                         obj.P = [-20,  0,  0;
+%                                   0, 20,  0;
+%                                   0,  0, 20];
+%                         obj.P = [ 0,  0,  0;
+%                                   0,  0,  0;
+%                                   0,  0,  0];
+%                         obj.P = [-10,  0,  0;
+%                                   0, 10,  0;
+%                                   0,  0, 10];
 
             if isempty(rpy_dot_des)
                 rpy_dot_des = zeros(3, 1);

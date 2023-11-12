@@ -11,7 +11,8 @@ classdef control_allocation_vtol < handle
         Max_speed_sq
 
 
-        actuator_store = zeros(8,1)
+%         actuator_store = [0.12,0,0,0,0,0,0,0]'
+        actuator_store = [0.12,0,0,0,0,0,0,0]'
        
 %%%
     end
@@ -110,12 +111,20 @@ classdef control_allocation_vtol < handle
                 % total maxx = 7.4270
                 
                 control_sp = [M_des; F_des];
+                
+%                 control_sp(1) = 0;
+%                 disp('control_sp')
+%                 disp(control_sp)
 
 
                 Va_i = multirotor.State.AirVelocity;
                 q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
                 
                 actuator_trim = obj.actuator_store; 
+
+
+%                 disp('actuator_trim')
+%                 disp(actuator_trim)
 
 % %                 actuator_trim = zeros(8,1);
 
@@ -150,9 +159,20 @@ classdef control_allocation_vtol < handle
                 lb = abs_lb - actuator_trim;
                 ub = abs_ub - actuator_trim;
 
+                lb(1) = 0;
+                ub(1) = 0;
+
+                
+
     
                 options = optimoptions('lsqlin','Algorithm','interior-point','Display','off');
                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub,[],options);
+
+
+%                 disp('actuator_change')
+%                 disp(actuator_change)
+                
+
 
 % % %                 a = size(actuator_change);
 % % % 
@@ -161,15 +181,25 @@ classdef control_allocation_vtol < handle
 % % %                 end
 
 
-
-
                 actuator_sp = actuator_trim + actuator_change;
-     
+                
+
+                  actuator_sp(1) = 0.12;
+
+                disp('actuator_sp')
+                disp(actuator_sp)
+
+                result = effectiveness_matrix * actuator_sp;
+
+                disp('result')
+                disp(result)
+                
+
                 rotor_speeds_squared = actuator_sp(1:4);
                
                 
 
-                deflections = [actuator_sp(5)-actuator_sp(6), actuator_sp(7), actuator_sp(8)];
+                deflections = [actuator_sp(6) - actuator_sp(5), actuator_sp(7), actuator_sp(8)];
 
                 obj.actuator_store = actuator_sp;
 
