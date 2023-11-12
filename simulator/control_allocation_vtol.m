@@ -12,7 +12,7 @@ classdef control_allocation_vtol < handle
 
 
 %         actuator_store = [0.12,0,0,0,0,0,0,0]'
-        actuator_store = [0.12,0,0,0,0,0,0,0]'
+        actuator_store = [0,0,0,0,0,0,0,0]'
        
 %%%
     end
@@ -112,8 +112,8 @@ classdef control_allocation_vtol < handle
                 
                 control_sp = [M_des; F_des];
                 
-                disp('control_sp')
-                disp(control_sp)
+%                 disp('control_sp')
+%                 disp(control_sp)
 
 
                 Va_i = multirotor.State.AirVelocity;
@@ -137,8 +137,8 @@ classdef control_allocation_vtol < handle
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
 
-                           disp('effectiveness_matrix2')
-           disp(effectiveness_matrix)
+%                            disp('effectiveness_matrix2')
+%            disp(effectiveness_matrix)
 
                 control_trim = effectiveness_matrix * actuator_trim;
 
@@ -160,19 +160,16 @@ classdef control_allocation_vtol < handle
             
                 lb = abs_lb - actuator_trim;
                 ub = abs_ub - actuator_trim;
-
-                lb(1) = 0;
-                ub(1) = 0;
-
+%%%%%%%%%
+%                 lb(1) = 0;
+%                 ub(1) = 0;
+%%%%%%%%%
                 
 
     
                 options = optimoptions('lsqlin','Algorithm','interior-point','Display','off');
                 actuator_change = lsqlin(effectiveness_matrix,control_change,[],[],[],[],lb,ub,[],options);
 
-
-%                 disp('actuator_change')
-%                 disp(actuator_change)
                 
 
 
@@ -185,16 +182,16 @@ classdef control_allocation_vtol < handle
 
                 actuator_sp = actuator_trim + actuator_change;
                 
+% % % % % % % % % % % % % % 
+% % % % % % % % % % % % % %                   actuator_sp(1) = 0.12;
 
-                  actuator_sp(1) = 0.12;
+%                 disp('actuator_sp')
+%                 disp(actuator_sp)
+% 
+%                 result = effectiveness_matrix * actuator_sp;
 
-                disp('actuator_sp')
-                disp(actuator_sp)
-
-                result = effectiveness_matrix * actuator_sp;
-
-                disp('result')
-                disp(result)
+%                 disp('result')
+%                 disp(result)
                 
 
                 rotor_speeds_squared = actuator_sp(1:4);

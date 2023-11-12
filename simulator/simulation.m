@@ -170,7 +170,8 @@ for i = 1:obj.Multirotor.NumOfServos
             end
 end
 
-           obj.Multirotor.ChangeServoAngles(tilt_des);
+%            obj.Multirotor.ChangeServoAngles(tilt_des);
+           obj.Multirotor.ChangeServoAngles(servoangles);
 
            last_time = time;
 

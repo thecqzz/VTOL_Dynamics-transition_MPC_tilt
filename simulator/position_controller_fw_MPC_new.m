@@ -259,7 +259,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             for k = 1:N %new - set the reference to track
                 t_predict = time + (k-1)*dt; % predicted time instant
 %               Vx_ref = -200*sin((3/2*pi)+2*pi/43.44*t_predict)*2*pi/43.44; Vy_ref = 200*cos((3/2*pi)+2*pi/43.44*t_predict)*2*pi/43.44; Vz_ref = 0;
-                radius = 150;
+                radius = 200;
                 V = 24;
                 w = V/radius;
                 Vx_ref =-radius*sin((3/2*pi)+w*t_predict)*w; Vy_ref = radius*cos((3/2*pi)+w*t_predict)*w;Vz_ref = 0;

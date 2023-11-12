@@ -57,15 +57,15 @@ classdef vtol < multirotor
              u = [obj.State.RotorSpeeds.^2/1.2194e+6;plantinput.AileronLeftRate;plantinput.ElevatorRate;plantinput.RudderRate];
             
 
-            disp('u')
-            disp(u)
+%             disp('u')
+%             disp(u)
             tilt = obj.State.ServoAngles;
 
             if( isempty(tilt) )
             tilt = [0,0,0,0]';
             end
-            disp('tilt')
-            disp(tilt)
+%             disp('tilt')
+%             disp(tilt)
 
 
             Va_i = obj.State.AirVelocity;
@@ -75,13 +75,13 @@ classdef vtol < multirotor
 
            effectiveness_matrix = calc_eff_mat(q_bar, deg2rad(tilt));
 
-           disp('effectiveness_matrix1')
-           disp(effectiveness_matrix)
+%            disp('effectiveness_matrix1')
+%            disp(effectiveness_matrix)
             
             test = effectiveness_matrix * u;
 
-            disp('test')
-            disp(test)
+%             disp('test')
+%             disp(test)
 
             aeromoments = obj.CalcAerodynamicMoment(obj.State.Velocity);
 
@@ -112,8 +112,8 @@ classdef vtol < multirotor
             %full areo
             wrench(4:6) = wrench(4:6) + force(1:3);
 
-            disp('calculated wrench')
-            disp(wrench)
+%             disp('calculated wrench')
+%             disp(wrench)
 
 
 
