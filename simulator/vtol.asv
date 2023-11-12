@@ -27,8 +27,10 @@ classdef vtol < multirotor
         is_transition = false;
 
         % steady fw speed  =  27.7425;
-        blending_air_speed = 4;   
-        Transition_air_speed = 15; 
+        blending_air_speed = 10;   
+        Transition_air_speed = 23; 
+
+%         tilt = [0,0,0,0]';
 
     end
 
@@ -44,11 +46,47 @@ classdef vtol < multirotor
     methods
         function obj = vtol(ArmAngles, RotationDirections)
             obj = obj@multirotor(ArmAngles, RotationDirections);
+
         end
 
         function [wrench, aeromoments] = CalcGeneratedWrench(obj, plantinput)
 
             wrench = CalcGeneratedWrench@multirotor(obj, plantinput);
+
+            
+             u = [obj.State.RotorSpeeds.^2/1.2194e+6;plantinput.AileronLeftRate;plantinput.ElevatorRate;plantinput.RudderRate];
+            
+
+            disp('u')
+            disp(u)
+            tilt = obj.State.ServoAngles
+
+            if( isempty(tilt) )
+            tilt = [0,0,0,0]';
+            end
+            disp('tilt')
+            disp(obj.tilt)
+
+            disp(bug)
+
+
+            Va_i = obj.State.AirVelocity;
+            q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
+
+
+            abc = [45,45,30,45]';
+
+            
+
+           effectiveness_matrix = calc_eff_mat(q_bar, deg2rad(abc));
+
+           disp('effectiveness_matrix1')
+           disp(effectiveness_matrix)
+            
+            test = effectiveness_matrix * u;
+
+            disp('test')
+            disp(test)
 
             aeromoments = obj.CalcAerodynamicMoment(obj.State.Velocity);
 
@@ -56,13 +94,20 @@ classdef vtol < multirotor
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% start new lift here %%%%%%%%%%%%%%%%%%
 
             % add moment
-            wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
+
+%             wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
+
+
+            wrench = test;
+         
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
                           wrench(4:6) = wrench(4:6) + force(1:3);
-            % lift only
-%                           wrench(6:6) = wrench(6:6) + force(3:3);
+
+            disp('calculated wrench')
+            disp(wrench)
+
 
 
         end
@@ -97,47 +142,17 @@ classdef vtol < multirotor
 
             q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
 
-            c_y = 0; % TODO: Later
-% 
-%             C_Z0 = 0.35;
-%             C_Za = 0.11;
-%             C_D0 = 0.01;
-%             C_Da = 0.0002;
-% 
-%             alphaR = deg2rad(alpha);
-%             alpha_plusR = deg2rad(15);
-%             alpha_minusR = deg2rad(9);
-% 
-%             k_plus = 20;
-%             k_minus = 800;
-% 
-%             c_zl = C_Z0 + C_Za .* alpha;
-%             c_dl = C_D0 + C_Da .* alpha .* alpha;
-% 
-%             c_1 = 1;
-%             c_0 = 0.025;
-% 
-%             c_zs = c_1 * sind(2*alpha);
-%             c_ds = c_0 + 2*c_1*sind(alpha).^2;
-% 
-% 
-%             if alphaR >= 0 & alphaR <= pi/2
-%                 coeff = (1 + tanh(k_plus*(alpha_plusR.^2 - alphaR^2)))/(1 + tanh(k_plus * alpha_plusR.^2));
-%             else
-%                 coeff = (1 + tanh(k_minus*(alpha_minusR.^2 - alphaR.^2)))/(1 + tanh(k_minus * alpha_minusR.^2));
-%             end
-% 
-%             c_z = coeff .* c_zl + (1 - coeff).*c_zs;
-%             c_x = coeff .* c_dl + (1 - coeff).*c_ds;
+            c_y = 0;
 
 
-                        C_Z0 = 0.35;
-                        C_Za = 0.11;
-                        C_D0 = 0.03;
-                        C_Da = 0.2;
-            
-                        c_z = C_Z0 + C_Za * alpha;
-                        c_x = C_D0 + C_Da * alpha * alpha;
+
+            C_Z0 = 0.35;
+            C_Za = 0.11;
+            C_D0 = 0.03;
+            C_Da = 0.2;
+
+            c_z = C_Z0 + C_Za * alpha;
+            c_x = C_D0 + C_Da * alpha * alpha;
 
             drag = q_bar * obj.WingSurfaceArea * c_x;
             lateral = q_bar * obj.WingSurfaceArea * c_y;
@@ -156,7 +171,13 @@ classdef vtol < multirotor
             %% frame change
             rbi = obj.GetRotationMatrix();
             rib = rbi';
+
+            lift = 0;
+            drag = 0;
+
             force = rib * rbw * [-drag; lateral; -lift];
+
+
     
         end
 
@@ -201,6 +222,13 @@ classdef vtol < multirotor
             roll_moment = q_bar * obj.S_A * obj.C_A * plantinput.AileronLeftRate;
             pitch_moment = q_bar * obj.S_E * obj.C_E * plantinput.ElevatorRate;
             yaw_moment = q_bar * obj.S_R * obj.C_R * plantinput.RudderRate;
+             
+%             disp('1')
+%             disp(obj.S_A)
+%             disp('2')
+%             disp(obj.S_E)
+%             disp('3')
+%             disp(obj.S_R)
 
             moment = [roll_moment; pitch_moment; yaw_moment];
         end
@@ -247,12 +275,11 @@ classdef vtol < multirotor
             dist = 2;
             f1 = @(x) 0;
             f2 = @(x)  0.5 * (x-obj.blending_air_speed)/(obj.Transition_air_speed-obj.blending_air_speed);
-            foo = blend(f1, f2, 6, dist);
+            foo = blend(f1, f2, 5, dist);
 
             f3 = @(x) foo(x);
             f4 = 1;
-            foo = blend(f3, f4, 12, dist);
-
+            foo = blend(f3, f4, 20, dist);
             coeff = foo(air_speed_norm);
 
         end
@@ -318,4 +345,46 @@ if isnumeric(f2)
 end
 blf = @(x) tanh((x-location)./distance)/2;
 foo = @(x) (1/2 - blf(x)).*f1(x) + (1/2 + blf(x)).*f2(x);
+end
+
+
+
+
+
+function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
+    
+    
+    %           1         2        3         4
+    
+    
+    Px = [ 1 * cosd(30) 1 * cosd(150) 1 * cosd(210) 1 * cosd(330)];
+    Py = [ 1 * sind(30) 1 * sind(150) 1 * sind(210) 1 * sind(330)];
+
+    Pz = zeros(1, 4);
+
+    Ct = (1.08105e-4 / 5)          * 1.2194e+6;    
+    Km = ((1.08105e-4 / 5) * 0.05) * 1.2194e+6;
+   
+
+    ro = 1.225;
+
+     b = 1.0; %wing
+% 
+     S_A = 0.0720; %aileron surface area in m^2
+     S_E = 0.03; %elevator surface area in m^2
+     S_R = 0.008; %rudder surface area in m^2
+% 
+     Cla = 0.11730; %Aileron constant
+     Cme = 0.55604; %Elevator constant
+     Cnr = 0.08810; %Rudder constant
+
+
+   
+    effectiveness_matrix = [-Py(1) * Ct*cos(tilt(1)) +  Km * sin(tilt(1)),		      -Py(2) * Ct*cos(tilt(2)) -  Km * sin(tilt(2)),		   -Py(3) * Ct*cos(tilt(3)) +  Km * sin(tilt(3)),			    -Py(4) * Ct*cos(tilt(4)) -  Km * sin(tilt(4)),			   		  q_bar*S_A*b*Cla,	                0.0, 		 		    0.0;
+                             Ct*(Px(1) * cos(tilt(1)) + Pz(1) * sin(tilt(1))),  	  Ct*(Px(2) * cos(tilt(2)) + Pz(2) * sin(tilt(2))),		   Ct*(Px(3) * cos(tilt(3)) + Pz(3) * sin(tilt(3))),			Ct*(Px(4) * cos(tilt(4)) + Pz(4) * sin(tilt(4))),			      0.0, 		 	                                q_bar*S_E*b*Cme,	 	0.0; 			
+                            -Py(1) * Ct*sin(tilt(1)) -  Km * cos(tilt(1)),		      -Py(2) * Ct*sin(tilt(2)) +  Km * cos(tilt(2)),		   -Py(3) * Ct*sin(tilt(3)) -  Km * cos(tilt(3)),			    -Py(4) * Ct*sin(tilt(4)) +  Km * cos(tilt(4)),			   	      0.0, 		 	                                0.0, 		 		 	q_bar*S_R*b*Cnr; 	
+                             Ct * sin(tilt(1)),	 									  Ct * sin(tilt(2)),			   					       Ct * sin(tilt(3)),											Ct * sin(tilt(4)),										       	  0.0, 		 	                                0.0, 		 	        0.0; 			
+                             0.0,  			 										  0.0,  							   			 	       0.0,  													 	0.0,	 												  		  0.0, 		 	                                0.0, 		 	        0.0; 			
+                            -Ct * cos(tilt(1)),	 						    		  -Ct * cos(tilt(2)),			   					       -Ct * cos(tilt(3)),											-Ct * cos(tilt(4)),									        	  0.0, 		 	                                0.0, 		 	        0.0]; 			
+ 
 end

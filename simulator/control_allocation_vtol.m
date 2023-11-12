@@ -112,9 +112,8 @@ classdef control_allocation_vtol < handle
                 
                 control_sp = [M_des; F_des];
                 
-%                 control_sp(1) = 0;
-%                 disp('control_sp')
-%                 disp(control_sp)
+                disp('control_sp')
+                disp(control_sp)
 
 
                 Va_i = multirotor.State.AirVelocity;
@@ -137,6 +136,9 @@ classdef control_allocation_vtol < handle
 
                 
                 effectiveness_matrix = calc_eff_mat(q_bar, tilt);
+
+                           disp('effectiveness_matrix2')
+           disp(effectiveness_matrix)
 
                 control_trim = effectiveness_matrix * actuator_trim;
 
@@ -199,7 +201,7 @@ classdef control_allocation_vtol < handle
                
                 
 
-                deflections = [actuator_sp(6) - actuator_sp(5), actuator_sp(7), actuator_sp(8)];
+                deflections = [actuator_sp(5) - actuator_sp(6), actuator_sp(7), actuator_sp(8)];
 
                 obj.actuator_store = actuator_sp;
 

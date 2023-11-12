@@ -30,6 +30,8 @@ classdef vtol < multirotor
         blending_air_speed = 10;   
         Transition_air_speed = 23; 
 
+%         tilt = [0,0,0,0]';
+
     end
 
     properties (SetAccess=protected, GetAccess=public)
@@ -51,6 +53,39 @@ classdef vtol < multirotor
 
             wrench = CalcGeneratedWrench@multirotor(obj, plantinput);
 
+            
+             u = [obj.State.RotorSpeeds.^2/1.2194e+6;plantinput.AileronLeftRate;plantinput.ElevatorRate;plantinput.RudderRate];
+            
+
+            disp('u')
+            disp(u)
+            tilt = obj.State.ServoAngles;
+
+            if( isempty(tilt) )
+            tilt = [0,0,0,0]';
+            end
+            disp('tilt')
+            disp(tilt)
+
+
+            Va_i = obj.State.AirVelocity;
+            q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
+
+
+            abc = [45,45,30,45]';
+
+            
+
+           effectiveness_matrix = calc_eff_mat(q_bar, deg2rad(tilt));
+
+           disp('effectiveness_matrix1')
+           disp(effectiveness_matrix)
+            
+            test = effectiveness_matrix * u;
+
+            disp('test')
+            disp(test)
+
             aeromoments = obj.CalcAerodynamicMoment(obj.State.Velocity);
 
 
@@ -58,15 +93,11 @@ classdef vtol < multirotor
 
             % add moment
 
-            disp('wrench')
-            disp(wrench(1:3))
+%             wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
 
-            wrench(1:3) = wrench(1:3) + obj.CalcDeflectionMoment(obj.State.Velocity, plantinput);
 
-            disp('obj.CalcDeflectionMoment')
-            disp(obj.CalcDeflectionMoment(obj.State.Velocity, plantinput))
-            
-
+            wrench = test;
+         
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
             %full areo
@@ -312,4 +343,46 @@ if isnumeric(f2)
 end
 blf = @(x) tanh((x-location)./distance)/2;
 foo = @(x) (1/2 - blf(x)).*f1(x) + (1/2 + blf(x)).*f2(x);
+end
+
+
+
+
+
+function effectiveness_matrix = calc_eff_mat(q_bar, tilt)
+    
+    
+    %           1         2        3         4
+    
+    
+    Px = [ 1 * cosd(30) 1 * cosd(150) 1 * cosd(210) 1 * cosd(330)];
+    Py = [ 1 * sind(30) 1 * sind(150) 1 * sind(210) 1 * sind(330)];
+
+    Pz = zeros(1, 4);
+
+    Ct = (1.08105e-4 / 5)          * 1.2194e+6;    
+    Km = ((1.08105e-4 / 5) * 0.05) * 1.2194e+6;
+   
+
+    ro = 1.225;
+
+     b = 1.0; %wing
+% 
+     S_A = 0.0720; %aileron surface area in m^2
+     S_E = 0.03; %elevator surface area in m^2
+     S_R = 0.008; %rudder surface area in m^2
+% 
+     Cla = 0.11730; %Aileron constant
+     Cme = 0.55604; %Elevator constant
+     Cnr = 0.08810; %Rudder constant
+
+
+   
+    effectiveness_matrix = [-Py(1) * Ct*cos(tilt(1)) +  Km * sin(tilt(1)),		      -Py(2) * Ct*cos(tilt(2)) -  Km * sin(tilt(2)),		   -Py(3) * Ct*cos(tilt(3)) +  Km * sin(tilt(3)),			    -Py(4) * Ct*cos(tilt(4)) -  Km * sin(tilt(4)),			   		  q_bar*S_A*b*Cla,	                0.0, 		 		    0.0;
+                             Ct*(Px(1) * cos(tilt(1)) + Pz(1) * sin(tilt(1))),  	  Ct*(Px(2) * cos(tilt(2)) + Pz(2) * sin(tilt(2))),		   Ct*(Px(3) * cos(tilt(3)) + Pz(3) * sin(tilt(3))),			Ct*(Px(4) * cos(tilt(4)) + Pz(4) * sin(tilt(4))),			      0.0, 		 	                                q_bar*S_E*b*Cme,	 	0.0; 			
+                            -Py(1) * Ct*sin(tilt(1)) -  Km * cos(tilt(1)),		      -Py(2) * Ct*sin(tilt(2)) +  Km * cos(tilt(2)),		   -Py(3) * Ct*sin(tilt(3)) -  Km * cos(tilt(3)),			    -Py(4) * Ct*sin(tilt(4)) +  Km * cos(tilt(4)),			   	      0.0, 		 	                                0.0, 		 		 	q_bar*S_R*b*Cnr; 	
+                             Ct * sin(tilt(1)),	 									  Ct * sin(tilt(2)),			   					       Ct * sin(tilt(3)),											Ct * sin(tilt(4)),										       	  0.0, 		 	                                0.0, 		 	        0.0; 			
+                             0.0,  			 										  0.0,  							   			 	       0.0,  													 	0.0,	 												  		  0.0, 		 	                                0.0, 		 	        0.0; 			
+                            -Ct * cos(tilt(1)),	 						    		  -Ct * cos(tilt(2)),			   					       -Ct * cos(tilt(3)),											-Ct * cos(tilt(4)),									        	  0.0, 		 	                                0.0, 		 	        0.0]; 			
+ 
 end
