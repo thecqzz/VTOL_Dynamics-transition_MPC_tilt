@@ -71,9 +71,6 @@ classdef vtol < multirotor
             Va_i = obj.State.AirVelocity;
             q_bar = (Va_i' * Va_i) * physics.AirDensity / 2;
 
-
-            abc = [45,45,30,45]';
-
             
 
            effectiveness_matrix = calc_eff_mat(q_bar, deg2rad(tilt));
@@ -108,7 +105,7 @@ classdef vtol < multirotor
 
             wrench = [test(1:3);cal_force+Grav_f];
 % 
-%             wrench = [0,1,0,0,0,0]';
+%              wrench = [0,1,0,0,0,0]';
          
             % add force
             force = obj.CalcAerodynamicForce(obj.State.Velocity);
