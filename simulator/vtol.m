@@ -179,8 +179,8 @@ classdef vtol < multirotor
             rbi = obj.GetRotationMatrix();
             rib = rbi';
 
-            lift = 0;
-            drag = 0;
+%             lift = 0;
+%             drag = 0;
 
             force = rib * rbw * [-drag; lateral; -lift];
 
