@@ -491,8 +491,7 @@ classdef multirotor < handle
             new_state.Omega = obj.State.Omega + obj.State.AngularAcceleration * dt;
 
             new_state.Position = obj.State.Position + 0.5 * obj.State.Acceleration * dt * dt + obj.State.Velocity * dt;
-            new_state.RPY = wrapTo180(obj.State.RPY + obj.State.EulerRate * dt);
-
+            new_state.RPY = obj.State.RPY + obj.State.EulerRate * dt;
 
             % Update the end effector's state
             if obj.HasArm

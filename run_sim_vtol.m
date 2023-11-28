@@ -28,7 +28,7 @@ pos = [-200; 0; -200];
 %vel = [28.927; 0; 0];
 vel = [24; 0; 0];
 
-rpy = [0; 0; 0];
+rpy = [0; 0;0];
 omega = [0; 0.0; 0.0];
 lastThrust = [0;0;0];
 
@@ -50,9 +50,9 @@ sim.Multirotor.SetInitialState(pos, vel, rpy, omega,lastThrust);
 % sim.SimulateAttitudeResponse([10; 0; 0], true);
 
 % Or simulate position response
-sim.SetTotalTime(30);
+sim.SetTotalTime(60);
 figure;
-sim.SimulatePositionResponse([0; 0; -200], 0, true);
+sim.SimulatePositionResponse([-50; 0; -200], 0, true);
 
 %% Draw Additional plots
 % graphics.PlotSignalsByName(2, {'laileronp', 'laileronr', 'raileronp', 'raileronr'});
@@ -69,5 +69,5 @@ graphics.PlotSignalsByName(4, {'servo'}, false, true);
 
 fpv_cam = camera;
 fpv_cam.Offset = [0; 0; -0.35];
-graphics.AnimateLoggedTrajectory(sim.Multirotor, sim.Environment, 9, 1, true, true, []);
+%graphics.AnimateLoggedTrajectory(sim.Multirotor, sim.Environment, 9, 1, true, true, []);
 % graphics.RecordLoggedTrajectoryAnimation('myvideo', 30, sim.Multirotor, sim.Environment, 0, 1, true, true, fpv_cam);

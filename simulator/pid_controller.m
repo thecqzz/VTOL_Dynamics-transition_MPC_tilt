@@ -135,9 +135,9 @@ classdef (Abstract) pid_controller < handle
             % Calculate the result for the case when the rate has reached 
             % the limits (we basically convert the PID to a P controller 
             % on velocity to reach the maximum velocity in this case)
-            if is_angular
-                err = wrapToPi(err);
-            end
+%             if is_angular
+%                 err = wrapToPi(err);
+%             end
             rate_err_max = sign(err) .* rate_limits - abs(rate);
             accel_lim = D * rate_err_max;
             

@@ -8,7 +8,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         WingSurfaceArea = 0.44;
         Mass;
         q_ref = [5, 0.1, 0.1];
-        Q_v = diag([20;20;50])
+        Q_v = diag([20;20;30])
         Q_rpy = diag([10 10 10]);
         Q_rpy_dot = diag([10 10 10]);
         Q_u = diag([0.0025 0.0025 0.0025 0.0025 5 5 5 5 1 1 1]);
@@ -51,7 +51,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             obj.Mass = mult.Mass;
             
             Init_Vel = mult.State.Velocity;
-            Init_rpy = deg2rad(mult.State.RPY);
+            Init_rpy =  deg2rad(mult.State.RPY);
             Init_rpy_dot = deg2rad(mult.State.EulerRate);
             Init_Tilt_1 = deg2rad(mult.Servos{1}.CurrentAngle);
             Init_Tilt_2 = deg2rad(mult.Servos{2}.CurrentAngle);
@@ -64,7 +64,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             dt = time - obj.LastTime;
             
             % Horizon
-            N = 20;
+            N = 15;
             
             % Velocity
             V_x = SX.sym('V_x');
@@ -76,7 +76,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             Roll = SX.sym('Roll');
             Pitch = SX.sym('Pitch');
             Yaw = SX.sym('Yaw');
-            rpy = [Roll; Pitch; Yaw];
+            rpy =  [Roll; Pitch; Yaw];
             
             % Body rate setpoint parametrization
             Roll_dot = SX.sym('Roll_dot');
@@ -147,8 +147,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % eq contraint
             %init var
-            roll_ref = deg2rad(23.105);
-            omega_ref = [0; 0.057; 0.133];
+
             
             st = X(:,1);
             g = []; % constraints vector
@@ -166,7 +165,6 @@ classdef position_controller_fw_MPC_new < pid_controller
                 obj_soft_vel = obj.q_ref(1)*(exp(-3*Velocity_body(1) + 1) + obj.k_x*Velocity_body(1) - obj.c(1))...
                     + obj.q_ref(2)*(exp((-Velocity_body(2)- 2)) + exp(Velocity_body(2) - 2) - obj.c(2))...
                     + obj.q_ref(3)*(exp((-Velocity_body(3) - 2)) + exp(Velocity_body(3) - 2) - obj.c(3));
-                 %st(1:3)-P(n_states*k+1:n_states*k+3))' * obj.Q_v * (st(1:3)-P(n_states*k+1:n_states*k+3)
                 obj_stateinput = (st(1:3)-P(n_states*k+1:n_states*k+3))' * obj.Q_v * (st(1:3)-P(n_states*k+1:n_states*k+3)) +...
                                     (st(4:6))' * obj.Q_rpy * (st(4:6))...
                                    +(st(7:9))' * obj.Q_rpy_dot * (st(7:9))...
@@ -178,7 +176,7 @@ classdef position_controller_fw_MPC_new < pid_controller
                     exp(-0.332*Velocity_body(1)*(st(14)*180/pi)+1.8*(st(14)*180/pi)+(-0.477)*Velocity_body(1)-2.303) +...
                     exp(-0.332*Velocity_body(1)*(st(15)*180/pi)+1.8*(st(15)*180/pi)+(-0.477)*Velocity_body(1)-2.303) +...
                     exp(-0.332*Velocity_body(1)*(st(16)*180/pi)+1.8*(st(16)*180/pi)+(-0.477)*Velocity_body(1)-2.303);
-                %obj_soft_tilt = 0;
+                obj_soft_tilt=0;
                 objective_function = objective_function +  obj_stateinput  + obj_soft_vel+obj_soft_tilt;
                 
                 k1 = f(st, con);
@@ -187,10 +185,13 @@ classdef position_controller_fw_MPC_new < pid_controller
                 k4 = f(st + h*k3, con);
                 st_RK4_next = st + h/6* (k1 +2*k2 + 2*k3 +k4);
                 [equ1,equ2,equ3] = obj.solve_equcons(st(1:3),con(1:4),st(7:9),st(14:16));
+                %norm(Velocity_body)^2 = 150*physics.Gravity*tan(st(4))
                 %omega_ref = obj.caculate_omega(st(1:3),con(9:11));
                 g = [g;st_next - st_RK4_next(1:16)];
             end
 
+
+                
             objective_function = objective_function + (st(1:3)-P(n_states*N+1:n_states*N+3))' * obj.Q_v * (st(1:3)-P(n_states*N+1:n_states*N+3));
 
 
@@ -210,10 +211,9 @@ classdef position_controller_fw_MPC_new < pid_controller
             %------------------------------------------------------
             args = struct;
             % equality constraints
-            args.lbg(1:n_states*(N+1)) = -1e-20;
-            args.ubg(1:n_states*(N+1)) =  1e-20;
-%             args.lbg(n_states*(N+1)+1:n_states*(N+1)+(N+1)) = -0.5;
-%             args.ubg(n_states*(N+1)+1:n_states*(N+1)+(N+1)) = 0.5;
+            args.lbg(1:n_states*(N+1)) = 0;
+            args.ubg(1:n_states*(N+1)) = 0;
+
 
             
             % input and states constraints
@@ -239,10 +239,10 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+3:n_controls:n_states*(N+1)+n_controls*N,1) = 23;
             args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = 23;
 
-%             args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = inf; %tilt_speed in rad
-            
-            args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -0; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = 0; %tilt_speed in rad
-
+            args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = inf; %tilt_speed in rad
+%             if(Init_Vel(2) > 0.5)
+%                 args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -0; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = 0; %tilt_speed in rad
+%             end
             args.lbx(n_states*(N+1)+6:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+6:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
             args.lbx(n_states*(N+1)+7:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+7:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
             args.lbx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
@@ -255,18 +255,19 @@ classdef position_controller_fw_MPC_new < pid_controller
             %run mpc
             
             x_state = [Init_Vel ; Init_rpy ; Init_rpy_dot;Init_last_rpy_dot;Init_Tilt];
-
-            u_trim = [zeros(8,1);deg2rad([23.105;0;0])];
+            u_trim = [zeros(8,1);deg2rad([0;0;0])];
             args.p(1:n_states) = x_state;
 %%                 ref tracking
             for k = 1:N %new - set the reference to track
                 t_predict = time + (k-1)*dt; % predicted time instant
-%               Vx_ref = -200*sin((3/2*pi)+2*pi/43.44*t_predict)*2*pi/43.44; Vy_ref = 200*cos((3/2*pi)+2*pi/43.44*t_predict)*2*pi/43.44; Vz_ref = 0;
-                radius = 200;
+                radius = 150;
                 V = 24;
                 w = V/radius;
-                Vx_ref =-radius*sin((3/2*pi)+w*t_predict)*w; Vy_ref = radius*cos((3/2*pi)+w*t_predict)*w;Vz_ref = 0;
+                Vx_ref =-radius*sin(3/2*pi+w*t_predict)*w; 
+                Vy_ref = radius*cos(3/2*pi+w*t_predict)*w;
+                Vz_ref = 0;
 
+               
                 args.p(n_states*k+1:n_states*k+3) = [Vx_ref; Vy_ref; Vz_ref];
                 args.p(n_states*k+4:n_states*k+16) = zeros(1,13);
                 V_des =  [Vx_ref; Vy_ref; Vz_ref];
@@ -297,12 +298,11 @@ classdef position_controller_fw_MPC_new < pid_controller
 
             obj.X0 = [x0(2:end,:);x0(end,:)];
             control = u(1,:)';
-
             thrust_MPC = control(1:4);
             accel_des = obj.getAccel_des(Init_Tilt,thrust_MPC);
 
             rpy_des = rad2deg(control(9:11));
-
+            
             tilt_speed = control(5:8);
 
             tilt_angle = getTilt_angle(Init_Tilt,tilt_speed,dt);
