@@ -2,7 +2,7 @@
 
 ### Installation
 
-1. In a command prompt, create a project workspace:
+1. In a command prompt, create a project workspace (optional):
    
     ```bash
     mkdir project_workspace
@@ -27,13 +27,13 @@
     git checkout failure
     ```
 
-5. (Optional) Pull the latest changes:
+5. Pull the latest changes (optional):
    
     ```bash
     git pull
     ```
 
-6. Double-check the current branch:
+6. Double-check the current branch (optional):
    
     ```bash
     git branch
