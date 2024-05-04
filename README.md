@@ -18,7 +18,7 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
 1. In a command prompt, create a project workspace (optional):
    
     ```bash
-    cd Desktop
+    cd~
     mkdir project_workspace
     cd project_workspace
     ```
@@ -29,7 +29,14 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
     git clone https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt.git
     cd VTOL_Dynamics-transition_MPC_tilt
     ```
-
+3. Download/install CasADi:
+   https://web.casadi.org/
+   ```bash
+   cd ~/VTOL_Dynamics-transition_MPC_tilt
+   mkdir casadi
+   ```
+   Extract all casadi files under ~/VTOL_Dynamics-transition_MPC_tilt/casadi
+   
 3. Check available branches using:
    
     ```bash
