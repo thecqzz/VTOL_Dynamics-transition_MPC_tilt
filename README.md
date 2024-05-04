@@ -50,6 +50,6 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
     git branch
     ```
 ### Usage
-When first running the code, there may be some toolboxes you need to install. Run the code several times and install the required toolboxes suggested by MATLAB.
+When first running the code, there may be some MATLAB toolboxes you need to install. Run the code several times and install the required toolboxes suggested by MATLAB.
 
 1.
