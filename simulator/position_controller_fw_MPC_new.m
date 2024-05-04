@@ -44,7 +44,7 @@ classdef position_controller_fw_MPC_new < pid_controller
         function [accel_des,rpy_des,tilt_angle,V_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
 
 
-            addpath('D:\MECH/CasAdi')
+            addpath('D:\casadi\')
             import casadi.*
            
             obj.Mass = mult.Mass;
@@ -272,11 +272,9 @@ classdef position_controller_fw_MPC_new < pid_controller
         
         
         function force = CalcAeroForce(obj,V,rpy)
-            %         V = V';
-            %         a = atand(V(3)/V(1)) + obj.aoi;
+
             R_i2b = GetRotationMatrix(rpy(1),rpy(2),rpy(3));
-       
-            
+
             V_b = R_i2b*V;
             
             a = atan(V_b(3)/V_b(1)); %angle attack;
