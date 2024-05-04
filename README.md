@@ -32,7 +32,7 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
     git branch -r
     ```
 
-4. Switch to the branch with the most features (e.g., "failure" branch):
+4. Switch to the branch with the most features ("failure" branch):
    
     ```bash
     git checkout failure
