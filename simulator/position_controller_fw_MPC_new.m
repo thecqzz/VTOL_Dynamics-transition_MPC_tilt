@@ -45,7 +45,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 
 
         function [accel_des,rpy_des,tilt_angle_des,V_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
-
+            addpath('D:/casadi/')
             import casadi.*
             
             obj.Mass = mult.Mass;
@@ -240,9 +240,7 @@ classdef position_controller_fw_MPC_new < pid_controller
             args.lbx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = 0; args.ubx(n_states*(N+1)+4:n_controls:n_states*(N+1)+n_controls*N,1) = 23;
 
             args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = inf; %tilt_speed in rad
-%             if(Init_Vel(2) > 0.5)
-%                 args.lbx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = -0; args.ubx(n_states*(N+1)+5:n_controls:n_states*(N+1)+n_controls*N,1) = 0; %tilt_speed in rad
-%             end
+
             args.lbx(n_states*(N+1)+6:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+6:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
             args.lbx(n_states*(N+1)+7:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+7:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
             args.lbx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = -inf; args.ubx(n_states*(N+1)+8:n_controls:n_states*(N+1)+n_controls*N,1) = inf;
