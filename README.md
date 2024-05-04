@@ -1,5 +1,16 @@
 # VTOL_Dynamics
 
+### Description
+This project aims to provide a new MPC control strategy for an electric tilt-rotor vertical take-off and landing aircraft (eVTOL). 
+<img width="464" alt="1" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/0f71122d-3d9b-4348-93c9-6710e64dd9e8">
+
+VTOL is a combination of multicopper and fixed-wing capable of taking off vertically while being energy efficient in long range.
+<img width="466" alt="2" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/fef752dc-044d-4485-99da-ebab61196c8d">
+
+There are three different major types of VTOL in the market. Among them, the titrator VTOL has the highest controllability but is mechanically complex. 
+
+Traditional fused PID control method for tilt-rotor VTOL requires controller blending, requiring different controllers at different flight modes. This makes the transition unsmooth and tracking unstable. Thus, developing a new controller strategy for such aircraft is necessary.
+
 ### Installation
 
 1. In a command prompt, create a project workspace (optional):
@@ -38,5 +49,7 @@
     ```bash
     git branch
     ```
+### Usage
+When first running the code, there may be some toolboxes you need to install. Run the code several times and install the required toolboxes suggested by MATLAB.
 
-
+1.
