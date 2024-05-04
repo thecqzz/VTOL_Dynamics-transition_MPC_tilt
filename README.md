@@ -2,10 +2,10 @@
 
 ### Description
 This project aims to provide a new MPC control strategy for an electric tilt-rotor vertical take-off and landing aircraft (eVTOL). 
-<img width="464" alt="1" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/0f71122d-3d9b-4348-93c9-6710e64dd9e8">
+<img width="650" alt="1" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/0f71122d-3d9b-4348-93c9-6710e64dd9e8">
 
 VTOL is a combination of multicopper and fixed-wing capable of taking off vertically while being energy efficient in long range.
-<img width="466" alt="2" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/fef752dc-044d-4485-99da-ebab61196c8d">
+<img width="650" alt="3" src="https://github.com/thecqzz/VTOL_Dynamics-transition_MPC_tilt/assets/114604817/710757f3-f5bc-4d96-afe6-4f90af38fdb0">
 
 There are three different major types of VTOL in the market. Among them, the titrator VTOL has the highest controllability but is mechanically complex. 
 
