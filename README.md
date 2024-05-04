@@ -18,6 +18,7 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
 1. In a command prompt, create a project workspace (optional):
    
     ```bash
+    cd Desktop
     mkdir project_workspace
     cd project_workspace
     ```
