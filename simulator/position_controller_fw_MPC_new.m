@@ -45,7 +45,7 @@ classdef position_controller_fw_MPC_new < pid_controller
 
 
         function [accel_des,rpy_des,tilt_angle_des,V_des] = CalculateControlCommand(obj, mult, pos_des, vel_des, yaw_des, acc_des, time)
-            addpath('D:/casadi/')
+            addpath('casadi\')
             import casadi.*
             
             obj.Mass = mult.Mass;
