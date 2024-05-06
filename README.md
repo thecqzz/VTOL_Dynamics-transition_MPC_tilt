@@ -63,4 +63,5 @@ Traditional fused PID control method for tilt-rotor VTOL requires controller ble
 ### Usage
 When first running the code, there may be some MATLAB toolboxes you need to install. Run the code several times and install the required toolboxes suggested by MATLAB.
 
-1.
+1. To start the simulation by running run_sim_vtol.m
+2. To change to MPC parameters and the reference trajectory following the comment in mpc position controller(For more detail https://github.com/MMehrez/MPC-and-MHE-implementation-in-MATLAB-using-Casadi)
