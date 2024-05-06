@@ -65,3 +65,5 @@ When first running the code, there may be some MATLAB toolboxes you need to inst
 
 1. To start the simulation by running run_sim_vtol.m
 2. To change to MPC parameters and the reference trajectory following the comment in mpc position controller(For more detail https://github.com/MMehrez/MPC-and-MHE-implementation-in-MATLAB-using-Casadi)
+
+You can try different types of control allocation by changing the control allocation file name between "control_allocation_vtol" and "control_allocation" in "simulator/controller.m".
